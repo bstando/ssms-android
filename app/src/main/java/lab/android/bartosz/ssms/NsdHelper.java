@@ -2,6 +2,7 @@ package lab.android.bartosz.ssms;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
@@ -52,6 +53,8 @@ public class NsdHelper {
                 InetAddress host = serviceInfo.getHost();
                 Log.d(TAG, "Host:" + host.getHostAddress() + ", Port:" + port);
                 mDSNList.put(host,port);
+                Intent intent = new Intent(MainActivity.ACTION_CLIENTS_CHANGED);
+                context.sendBroadcast(intent);
             }
         };
     }

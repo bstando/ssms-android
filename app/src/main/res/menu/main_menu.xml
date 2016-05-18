@@ -20,6 +20,7 @@
     <item
         android:id="@+id/action_refresh"
         android:title="@string/refresh"
-        app:showAsAction="never"/>
+        app:showAsAction="ifRoom"
+        app:icon="@drawable/ic_sync_black_24dp" />
 
 </menu>

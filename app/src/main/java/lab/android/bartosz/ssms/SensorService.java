@@ -2,11 +2,13 @@ package lab.android.bartosz.ssms;
 
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
@@ -22,15 +24,21 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class SensorService extends Service {
     private Handler handler = new Handler();
     private SensorDataDbHelper sensorDataDbHelper;
     private NsdHelper nsdHelper;
     private boolean searching = false;
+    Context context;
+
+    Map<InetAddress,Timer> taskMap = new HashMap<>();
 
 
     private final IBinder binder = new LocalBinder();
@@ -44,6 +52,15 @@ public class SensorService extends Service {
     public void setHelpers(NsdHelper nsdHelper1, SensorDataDbHelper sensorDataDbHelper1) {
         this.nsdHelper = nsdHelper1;
         this.sensorDataDbHelper = sensorDataDbHelper1;
+    }
+
+    @Override
+    public void onCreate() {
+        context = getApplicationContext();
+        nsdHelper = new NsdHelper(context);
+        sensorDataDbHelper = new SensorDataDbHelper(context);
+        nsdHelper.initializeNsd();
+        super.onCreate();
     }
 
     @Override
@@ -80,10 +97,10 @@ public class SensorService extends Service {
 
     private class DownloadData extends AsyncTask<Pair<InetAddress,Integer>, Void,SensorData>
     {
-        private SensorData data;
-        protected DownloadData(SensorData sensorData)
+
+        protected DownloadData()
         {
-            data = sensorData;
+
         }
 
         @Override
@@ -109,6 +126,7 @@ public class SensorService extends Service {
                 String jsonString = new String(bMsg,0,datagramPacket.getLength());
                 JSONObject retJson = new JSONObject(jsonString);
                 sensorData.setDate(new Date());
+                sensorData.setSensorId(retJson.getInt("id"));
                 sensorData.setTemperature((float)retJson.getDouble("temperature"));
                 sensorData.setHumidity((float)retJson.getDouble("humidity"));
                 dout.close();
@@ -127,7 +145,6 @@ public class SensorService extends Service {
                 }
             }
 
-            data = sensorData;
             Log.d("TASK",sensorData.toString());
             return sensorData;
         }
@@ -137,6 +154,7 @@ public class SensorService extends Service {
         {
             sensorDataDbHelper.insertData(sensorData);
             Toast.makeText(getApplicationContext(),sensorData.toString(),Toast.LENGTH_LONG).show();
+
         }
 
     }
@@ -161,6 +179,7 @@ public class SensorService extends Service {
             String jsonString = new String(bMsg, 0, recieveDatagramPacket.getLength());
             JSONObject retJson = new JSONObject(jsonString);
             sensorData.setDate(new Date());
+            sensorData.setSensorId(retJson.getInt("id"));
             sensorData.setTemperature((float) retJson.getDouble("temperature"));
             sensorData.setHumidity((float) retJson.getDouble("humidity"));
             datagramSocket.close();
@@ -222,12 +241,12 @@ public class SensorService extends Service {
     }
 
 
-    public SensorData getDataFromSensor(InetAddress address, int port) {
-        SensorData sensorData = new SensorData();
-        DownloadData data = new DownloadData(sensorData);
+    public void getDataFromSensor(InetAddress address, int port) {
+
+        DownloadData data = new DownloadData();
         data.execute(new Pair<InetAddress, Integer>(address,port));
-        sensorData = data.data;
-        return sensorData;
+
+
         //return new DownloadData().doInBackground();
 
     }
@@ -274,6 +293,35 @@ public class SensorService extends Service {
             }
         });
         return sensorData;
+    }
+
+    void startTimerTask(final InetAddress address,final int port, long interval) {
+        if (!taskMap.containsKey(address)) {
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Pair<InetAddress,Integer> pair = new Pair<InetAddress, Integer>(address,port);
+                            new DownloadData().execute(pair);
+                        }
+                    });
+                }
+            };
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate(timerTask,0,interval);
+            taskMap.put(address,timer);
+        }
+    }
+
+    void stopTimerTask(InetAddress address)
+    {
+        if(taskMap.containsKey(address)) {
+            Timer timer = taskMap.get(address);
+            timer.cancel();
+            taskMap.remove(address);
+        }
     }
 
 

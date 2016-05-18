@@ -1,50 +1,45 @@
 package lab.android.bartosz.ssms;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.design.widget.*;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String ACTION_CLIENTS_CHANGED = "lab.android.bartosz.ssms.CLIENT_CHANGED";
     protected SensorService sensorService;
     protected boolean bounded = false;
     ListView listView;
+    private NSDReciever nsdReciever;
 
     private List<DeviceInfo> devicesInfo = new ArrayList<>();
     ArrayAdapter<DeviceInfo> adapter;
 
-    SensorDataDbHelper sensorDataDbHelper;
-    NsdHelper nsdHelper;
+    //SensorDataDbHelper sensorDataDbHelper;
+    //NsdHelper nsdHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,13 +48,36 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        sensorDataDbHelper = new SensorDataDbHelper(getApplicationContext());
-        nsdHelper = new NsdHelper(getApplicationContext());
-        nsdHelper.initializeNsd();
+        //sensorDataDbHelper = new SensorDataDbHelper(getApplicationContext());
+        //nsdHelper = new NsdHelper(getApplicationContext());
+        //nsdHelper.initializeNsd();
 
         listView = (ListView) findViewById(R.id.listView);
         adapter = new ArrayAdapter<DeviceInfo>(this,android.R.layout.simple_list_item_1,devicesInfo);
         listView.setAdapter(adapter);
+
+        listView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Object object = listView.getItemAtPosition(position);
+                DeviceInfo deviceInfo = (DeviceInfo) object;
+                Intent intent = new Intent(getApplicationContext(),DeviceActivity.class);
+                intent.putExtra("address",deviceInfo.getAddress().getAddress());
+                intent.putExtra("port",deviceInfo.getPort());
+                startActivity(intent);
+            }
+        });
+
+        initReceiver();
+    }
+
+    private  void initReceiver()
+    {
+        nsdReciever = new NSDReciever();
+        IntentFilter filter = new IntentFilter(ACTION_CLIENTS_CHANGED);
+        registerReceiver(nsdReciever,filter);
     }
     @Override
     protected void onStart()
@@ -72,11 +90,22 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        super.onStop();
         if (bounded) {
             unbindService(connection);
             bounded = false;
         }
+
+
+        super.onStop();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(nsdReciever);
+        Intent intent = new Intent(this, SensorService.class);
+        stopService(intent);
+        super.onDestroy();
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -85,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
             SensorService.LocalBinder binder = (SensorService.LocalBinder) service;
             sensorService = binder.getService();
             bounded = true;
-            sensorService.setHelpers(nsdHelper, sensorDataDbHelper);
+            //sensorService.setHelpers(nsdHelper, sensorDataDbHelper);
 
         }
 
@@ -189,9 +218,23 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void data) {
 
             adapter.notifyDataSetChanged();
-            Toast.makeText(getApplicationContext(), "OK: " + devicesInfo.size(), Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Found: " + devicesInfo.size(), Toast.LENGTH_LONG).show();
         }
 
     }
 
+    public class NSDReciever extends BroadcastReceiver
+    {
+        public NSDReciever()
+        {
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals(ACTION_CLIENTS_CHANGED))
+            {
+                refreshList();
+            }
+        }
+    }
 }

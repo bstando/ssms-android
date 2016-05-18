@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "lab.android.bartosz.ssms"
-        minSdkVersion 16
+        minSdkVersion 17
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -17,7 +17,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
+
+repositories {
+    maven { url "https://jitpack.io" }
+    maven { // this is for realm-db
+        url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+    }
+}
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -25,4 +37,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:support-v4:23.4.0'
     compile 'com.android.support:design:23.4.0'
+    compile 'io.realm:realm-android:0.87.5'
+    compile project(":MPChartLib")
+    //compile 'com.github.PhilJay:MPAndroidChart:v2.1.6'
 }

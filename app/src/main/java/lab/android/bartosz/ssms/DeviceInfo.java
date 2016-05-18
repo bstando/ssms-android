@@ -54,6 +54,6 @@ public class DeviceInfo {
     @Override
     public String toString()
     {
-        return "Name: "+name+", ID: "+id;
+        return "Name: " + name + ", ID: " + id;
     }
 }
