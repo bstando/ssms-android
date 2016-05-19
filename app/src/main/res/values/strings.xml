@@ -55,7 +55,7 @@
         <item>10800000</item>
         <item>21600000</item>
     </string-array>
-   
+
 
     <string name="pref_title_system_sync_settings">System sync settings</string>
 
@@ -88,5 +88,15 @@
     <string name="widget_temperature">Temperature:</string>
     <string name="widget_date">Date:</string>
     <string name="widget_device">Device ID:</string>
+    <string name="data_id">Reading ID:</string>
+    <string name="data_update">Update</string>
+    <string name="data_remove">Remove</string>
+    <string name="data_date">Date:</string>
+    <string name="data_sensorID">Device ID:</string>
+    <string name="data_humidity">Humidity:</string>
+    <string name="data_temperature">Temperature:</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

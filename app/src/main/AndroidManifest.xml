@@ -3,8 +3,8 @@
     package="lab.android.bartosz.ssms">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -25,8 +25,7 @@
         </activity>
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"
-            />
+            android:label="@string/title_activity_settings" />
         <activity
             android:name=".DeviceActivity"
             android:label="@string/app_name"
@@ -37,7 +36,9 @@
                 android:value="lab.android.bartosz.ssms.MainActivity" />
         </activity>
 
-        <receiver android:name="layout.SensorWidget" android:label="@string/app_name">
+        <receiver
+            android:name="layout.SensorWidget"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -47,9 +48,16 @@
                 android:resource="@xml/sensor_widget_info" />
         </receiver>
 
-
-        <activity android:name=".ChartActivity"
-            android:parentActivityName=".MainActivity"/>
+        <activity
+            android:name=".ChartActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".SensorReadingsActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:label="@string/app_name"
+        />
+        <activity android:name=".SensorReadingDetailActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:label="@string/app_name"/>
     </application>
 
 </manifest>

@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(getApplicationContext(),DeviceActivity.class);
                 intent.putExtra("address",deviceInfo.getAddress().getAddress());
                 intent.putExtra("port",deviceInfo.getPort());
+                intent.putExtra("deviceID",deviceInfo.getId());
                 startActivity(intent);
             }
         });

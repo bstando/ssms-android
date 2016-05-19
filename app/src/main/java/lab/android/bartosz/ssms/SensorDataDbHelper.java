@@ -64,12 +64,12 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID,data.getSensorId());
         values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_DATE,dateFormat.format(data.getDate()));
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY,data.getHumidity());
         values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE,data.getTemperature());
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY,data.getHumidity());
         db.insert(SensorDataContract.SensorDataCol.TABLE_NAME, null,values);
     }
 
-    public void deleteData(int id)
+    public void deleteData(long id)
     {
         SQLiteDatabase db = this.getWritableDatabase();
         String[] args = {""+id};
@@ -82,13 +82,13 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID,data.getSensorId());
         values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_DATE,dateFormat.format(data.getDate()));
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY,data.getHumidity());
         values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE,data.getTemperature());
-        String[] args = {""+ SensorDataContract.SensorDataCol._ID};
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY,data.getHumidity());
+        String[] args = {""+ data.getId()};
         db.update(SensorDataContract.SensorDataCol.TABLE_NAME,values, SensorDataContract.SensorDataCol._ID+"=?",args);
     }
 
-    public List<SensorData> retriveAllData()
+    public List<SensorData> retrieveAllData()
     {
 
         List<SensorData> sensorDataList = new ArrayList<>();
@@ -127,8 +127,7 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
 
     }
 
-    public SensorData getLast()
-    {
+    public SensorData getLast() {
 
         SensorData sensorData = new SensorData();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -144,10 +143,91 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
                 SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + " DESC";
         String limit = "1";
 
-        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME,projection,null,null,null,null,sortOrder,limit);
+        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME, projection, null, null, null, null, sortOrder, limit);
+
+        if (cursor != null) {
+            cursor.moveToFirst();
+
+            sensorData.setId(cursor.getLong(0));
+            sensorData.setSensorId(cursor.getLong(1));
+            try {
+                sensorData.setDate(dateFormat.parse(cursor.getString(2)));
+            } catch (ParseException ex) {
+                sensorData.setDate(null);
+            }
+            sensorData.setHumidity(cursor.getFloat(3));
+            sensorData.setTemperature(cursor.getFloat(4));
+
+
+            cursor.close();
+        }
+        return sensorData;
+
+    }
+
+    public SensorData getByID(int id)
+    {
+
+        SensorData sensorData = new SensorData();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] projection = {
+                SensorDataContract.SensorDataCol._ID,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_DATE,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY
+        };
+
+        String sortOrder =
+                SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + " DESC";
+        String where = SensorDataContract.SensorDataCol._ID+"=?";
+        String[] whereArgs= {""+id};
+
+        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME,projection,where,whereArgs,null,null,sortOrder);
+        if (cursor != null) {
+            cursor.moveToFirst();
+
+            sensorData.setId(cursor.getLong(0));
+            sensorData.setSensorId(cursor.getLong(1));
+            try {
+                sensorData.setDate(dateFormat.parse(cursor.getString(2)));
+            } catch (ParseException ex) {
+                sensorData.setDate(null);
+            }
+            sensorData.setHumidity(cursor.getFloat(3));
+            sensorData.setTemperature(cursor.getFloat(4));
+
+
+            cursor.close();
+        }
+        return sensorData;
+
+    }
+
+    public List<SensorData> getByDeviceID(int deviceID)
+    {
+
+        List<SensorData> sensorDataList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] projection = {
+                SensorDataContract.SensorDataCol._ID,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_DATE,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY
+        };
+
+        String sortOrder =
+                SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + " DESC";
+
+        String where = SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID+"=?";
+        String[] whereArgs= {""+deviceID};
+
+        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME,projection,where,whereArgs,null,null,sortOrder);
 
         while (cursor.moveToNext())
         {
+            SensorData sensorData = new SensorData();
             sensorData.setId(cursor.getLong(0));
             sensorData.setSensorId(cursor.getLong(1));
             try {
@@ -158,11 +238,11 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
             }
             sensorData.setHumidity(cursor.getFloat(3));
             sensorData.setTemperature(cursor.getFloat(4));
-
+            sensorDataList.add(sensorData);
 
         }
         cursor.close();
-        return sensorData;
+        return sensorDataList;
 
     }
 

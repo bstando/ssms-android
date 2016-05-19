@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -30,6 +32,7 @@ public class DeviceActivity extends AppCompatActivity {
     InetAddress address;
     int port;
     ListView listView;
+    int deviceID;
 
 
     protected SensorService sensorService;
@@ -51,6 +54,7 @@ public class DeviceActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),e.getLocalizedMessage(),Toast.LENGTH_LONG).show();
             }
             port = extrasBundle.getInt("port");
+            deviceID = extrasBundle.getInt("deviceID");
         }
         listView = (ListView) findViewById(R.id.methodsListView);
         List<String> list= new ArrayList<String>();
@@ -82,6 +86,7 @@ public class DeviceActivity extends AppCompatActivity {
                         stopPeriodicTask(view);
                         break;
                     case 4:
+                        showSensorData();
                         break;
                     case 5:
                         showChart();
@@ -92,6 +97,13 @@ public class DeviceActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void showSensorData()
+    {
+        Intent intent = new Intent(getApplicationContext(), SensorReadingsActivity.class);
+        intent.putExtra("sensorID",deviceID);
+        startActivity(intent);
     }
 
     @Override
@@ -152,7 +164,8 @@ public class DeviceActivity extends AppCompatActivity {
 
     public void onClickDeviceInfoBtn(View v)
     {
-
+        DownloadData downloadData = new DownloadData();
+        downloadData.execute(new Pair<InetAddress, Integer>(address,port));
     }
 
     public void showChart()
@@ -182,6 +195,30 @@ public class DeviceActivity extends AppCompatActivity {
     {
         if(bounded)
             sensorService.stopTimerTask(address);
+    }
+
+    private class DownloadData extends AsyncTask<Pair<InetAddress,Integer>, Void,DeviceInfo>
+    {
+
+        protected DownloadData()
+        {
+
+        }
+
+        @Override
+        protected DeviceInfo doInBackground(Pair<InetAddress,Integer>... pairs)
+        {
+            return sensorService.getDeviceInfo(pairs[0].first,pairs[0].second);
+        }
+
+        @Override
+        protected void onPostExecute(DeviceInfo deviceInfo)
+        {
+            String info = deviceInfo.getName() +", " + deviceInfo.getId()+ ", " + deviceInfo.getLocalization();
+            Toast.makeText(getApplicationContext(),info,Toast.LENGTH_LONG).show();
+
+        }
+
     }
 
 }

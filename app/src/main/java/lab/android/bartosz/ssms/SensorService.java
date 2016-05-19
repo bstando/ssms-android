@@ -8,8 +8,6 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
@@ -22,10 +20,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -69,7 +65,7 @@ public class SensorService extends Service {
     }
 
     public List<SensorData> getFromDatabase() {
-        return sensorDataDbHelper.retriveAllData();
+        return sensorDataDbHelper.retrieveAllData();
     }
 
     public void insertToDatabase(SensorData data) {
@@ -81,6 +77,7 @@ public class SensorService extends Service {
             nsdHelper.discoverServices();
             searching = true;
         }
+
     }
 
     public void stopSearching() {
@@ -324,5 +321,23 @@ public class SensorService extends Service {
         }
     }
 
+    public List<SensorData> getBySensorID (int sensorID)
+    {
+        return sensorDataDbHelper.getByDeviceID(sensorID);
+    }
 
+    public SensorData getByID(int id)
+    {
+        return sensorDataDbHelper.getByID(id);
+    }
+
+    public void updateSensorData(SensorData sensorData)
+    {
+        sensorDataDbHelper.updateData(sensorData);
+    }
+
+    public void removeFromDatabase(long id)
+    {
+        sensorDataDbHelper.deleteData(id);
+    }
 }

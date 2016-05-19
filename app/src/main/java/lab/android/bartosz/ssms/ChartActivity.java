@@ -59,6 +59,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         super.onStart();
         Intent intent = new Intent(this,SensorService.class);
         bindService(intent,connection, Context.BIND_AUTO_CREATE);
+        setData(20, 30);
         //sensorDataDbHelper = new SensorDataDbHelper(getApplicationContext());
         //nsdHelper = new NsdHelper(getApplicationContext());
 
@@ -139,7 +140,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         mChart.setBackgroundColor(Color.LTGRAY);
 
         // add data
-        setData(20, 30);
+
 
         mChart.animateX(2500);
 
@@ -168,7 +169,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         YAxis leftAxis = mChart.getAxisLeft();
         leftAxis.setTypeface(tf);
         leftAxis.setTextColor(ColorTemplate.getHoloBlue());
-        leftAxis.setAxisMaxValue(60f);
+        leftAxis.setAxisMaxValue(100f);
         leftAxis.setAxisMinValue(-30f);
         leftAxis.setDrawGridLines(true);
         leftAxis.setGranularityEnabled(true);
@@ -177,7 +178,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         rightAxis.setTypeface(tf);
         rightAxis.setTextColor(Color.RED);
         rightAxis.setAxisMaxValue(100f);
-        rightAxis.setAxisMinValue(0f);
+        rightAxis.setAxisMinValue(-30f);
         rightAxis.setDrawGridLines(false);
         rightAxis.setDrawZeroLine(false);
         rightAxis.setGranularityEnabled(false);
