@@ -1,6 +1,8 @@
 package lab.android.bartosz.ssms;
 
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
@@ -34,6 +37,8 @@ public class SensorService extends Service {
     private boolean searching = false;
     Context context;
 
+    NotificationCompat.Builder mBuilder;
+
     Map<InetAddress,Timer> taskMap = new HashMap<>();
 
 
@@ -56,6 +61,13 @@ public class SensorService extends Service {
         nsdHelper = new NsdHelper(context);
         sensorDataDbHelper = new SensorDataDbHelper(context);
         nsdHelper.initializeNsd();
+        mBuilder = new NotificationCompat.Builder(context);
+        mBuilder.setContentTitle("SSMS");
+        mBuilder.setContentText(getString(R.string.notif_new_data));
+        mBuilder.setSmallIcon(R.drawable.ic_info_black_24dp);
+        Intent mIntent = new Intent(this, SensorReadingsActivity.class);
+        PendingIntent mPendingIntent = PendingIntent.getActivity(context, 0, mIntent, 0);
+        mBuilder.setContentIntent(mPendingIntent);
         super.onCreate();
     }
 
@@ -69,6 +81,8 @@ public class SensorService extends Service {
     }
 
     public void insertToDatabase(SensorData data) {
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(0, mBuilder.build());
         sensorDataDbHelper.insertData(data);
     }
 
@@ -149,7 +163,7 @@ public class SensorService extends Service {
         @Override
         protected void onPostExecute(SensorData sensorData)
         {
-            sensorDataDbHelper.insertData(sensorData);
+            insertToDatabase(sensorData);
             Toast.makeText(getApplicationContext(),sensorData.toString(),Toast.LENGTH_LONG).show();
 
         }
