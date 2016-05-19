@@ -24,7 +24,7 @@ public class SensorReadingDetailActivity extends AppCompatActivity {
     protected SensorService sensorService;
     protected boolean bounded = false;
 
-    private int id;
+    private long id;
 
 
     @Override
@@ -41,7 +41,7 @@ public class SensorReadingDetailActivity extends AppCompatActivity {
         Bundle extrasBundle = getIntent().getExtras();
         if(extrasBundle!=null) {
 
-            id = extrasBundle.getInt("id");
+            id = extrasBundle.getLong("id");
         }
 
     }

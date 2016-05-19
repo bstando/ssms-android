@@ -340,7 +340,7 @@ public class SensorService extends Service {
         return sensorDataDbHelper.getByDeviceID(sensorID);
     }
 
-    public SensorData getByID(int id)
+    public SensorData getByID(long id)
     {
         return sensorDataDbHelper.getByID(id);
     }

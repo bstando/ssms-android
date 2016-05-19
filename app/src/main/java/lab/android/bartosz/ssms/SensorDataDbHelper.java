@@ -165,7 +165,7 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
 
     }
 
-    public SensorData getByID(int id)
+    public SensorData getByID(long id)
     {
 
         SensorData sensorData = new SensorData();

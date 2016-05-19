@@ -97,7 +97,6 @@
     <string name="data_temperature">Temperature:</string>
     <string name="notif_new_data">There is new data in database</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 
 </resources>
