@@ -164,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
         if(bounded) {
             sensorService.startSearching();
             Toast.makeText(getApplicationContext(), "Searching Started", Toast.LENGTH_LONG).show();
+
         }
         else
         {
