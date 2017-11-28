@@ -1,16 +1,23 @@
 package lab.android.bartosz.ssms;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,15 +36,16 @@ import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
-
     public static final String ACTION_CLIENTS_CHANGED = "lab.android.bartosz.ssms.CLIENT_CHANGED";
     protected SensorService sensorService;
     protected boolean bounded = false;
     ListView listView;
     private NSDReciever nsdReciever;
 
-    private List<DeviceInfo> devicesInfo = new ArrayList<>();
-    ArrayAdapter<DeviceInfo> adapter;
+    private List<MDNSDevice> devicesInfo = new ArrayList<>();
+    ArrayAdapter<MDNSDevice> adapter;
+    boolean toast;
+    boolean searching=false;
 
     //SensorDataDbHelper sensorDataDbHelper;
     //NsdHelper nsdHelper;
@@ -52,8 +61,8 @@ public class MainActivity extends AppCompatActivity {
         //nsdHelper = new NsdHelper(getApplicationContext());
         //nsdHelper.initializeNsd();
 
-        listView = (ListView) findViewById(R.id.listView);
-        adapter = new ArrayAdapter<DeviceInfo>(this,android.R.layout.simple_list_item_1,devicesInfo);
+        listView = (ListView) findViewById(R.id.sensorListView);
+        adapter = new SensorListAdapter(this, devicesInfo);
         listView.setAdapter(adapter);
 
         listView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
@@ -62,30 +71,36 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 Object object = listView.getItemAtPosition(position);
-                DeviceInfo deviceInfo = (DeviceInfo) object;
-                Intent intent = new Intent(getApplicationContext(),DeviceActivity.class);
-                intent.putExtra("address",deviceInfo.getAddress().getAddress());
-                intent.putExtra("port",deviceInfo.getPort());
-                intent.putExtra("deviceID",deviceInfo.getId());
-                startActivity(intent);
+                MDNSDevice deviceInfo = (MDNSDevice) object;
+                if (deviceInfo.getIsSensor()) {
+                    StartSensorActivity startSensorActivity = new StartSensorActivity();
+                    startSensorActivity.execute(new Pair<InetAddress, Integer>(deviceInfo.getAddress(),deviceInfo.getPort()));
+
+                } else {
+                    Intent intent = new Intent(getApplicationContext(), CollectorActivity.class);
+                    intent.putExtra("address", deviceInfo.getAddress().getAddress());
+                    intent.putExtra("port", deviceInfo.getPort());
+                    startActivity(intent);
+                }
             }
         });
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        toast = prefs.getBoolean("show_toast",true);
 
         initReceiver();
     }
 
-    private  void initReceiver()
-    {
+    private void initReceiver() {
         nsdReciever = new NSDReciever();
         IntentFilter filter = new IntentFilter(ACTION_CLIENTS_CHANGED);
-        registerReceiver(nsdReciever,filter);
+        registerReceiver(nsdReciever, filter);
     }
+
     @Override
-    protected void onStart()
-    {
+    protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this,SensorService.class);
-        bindService(intent,connection, Context.BIND_AUTO_CREATE);
+        Intent intent = new Intent(this, SensorService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
     }
 
@@ -143,11 +158,11 @@ public class MainActivity extends AppCompatActivity {
                 this.finish();
                 return true;
             case R.id.action_settings:
-                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
             case R.id.action_start_search:
-                startSearching();
+                showNoWifiWarning();
                 return true;
             case R.id.action_stop_search:
                 stopSearching();
@@ -160,39 +175,121 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void startSearching() {
-        if(bounded) {
-            sensorService.startSearching();
-            Toast.makeText(getApplicationContext(), "Searching Started", Toast.LENGTH_LONG).show();
-
-        }
-        else
+    void showNoWifiWarning()
+    {
+        if(!sensorService.isConnectedViaWiFi()) {
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.alert_title))
+                    .setMessage(getString(R.string.string_noWifi))
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            //
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+        } else
         {
-            Toast.makeText(getApplicationContext(), "Service is NOT bounded", Toast.LENGTH_LONG).show();
+            startSearching();
+        }
+    }
+
+    public void startSearching() {
+        if (bounded) {
+            sensorService.startSearching();
+            searching=true;
+            if(toast)
+            Toast.makeText(getApplicationContext(), getString(R.string.string_searchStarted), Toast.LENGTH_LONG).show();
+
+        } else {
+            if(toast)
+            Toast.makeText(getApplicationContext(), getString(R.string.string_notBounded), Toast.LENGTH_LONG).show();
         }
     }
 
 
     public void stopSearching() {
         if (bounded) {
-            sensorService.stopSearching();
-            Toast.makeText(getApplicationContext(), "Searching Stopped", Toast.LENGTH_LONG).show();
+            if(searching) {
+                sensorService.stopSearching();
+                if (toast)
+                    Toast.makeText(getApplicationContext(), getString(R.string.string_searchStopped), Toast.LENGTH_LONG).show();
+            }
+
         } else {
-            Toast.makeText(getApplicationContext(), "Service is NOT bounded", Toast.LENGTH_LONG).show();
+            if(toast)
+            Toast.makeText(getApplicationContext(), getString(R.string.string_notBounded), Toast.LENGTH_LONG).show();
         }
     }
 
-    public void refreshList()
-    {
+    public void refreshList() {
         if (bounded) {
-        Map map = sensorService.getClients();
-        devicesInfo.clear();
-        DownloadDeviceInfo deviceInfo = new DownloadDeviceInfo();
-        deviceInfo.execute(map);
+            if(searching) {
+                //Map map = sensorService.getClients();
+                devicesInfo.clear();
+                adapter.clear();
+                adapter.notifyDataSetChanged();
+                //DownloadDeviceInfo deviceInfo = new DownloadDeviceInfo();
+                //deviceInfo.execute(map);
+
+                devicesInfo.addAll(sensorService.getDevices());
+                if (toast)
+                    Toast.makeText(getApplicationContext(), getString(R.string.string_added) + devicesInfo.size(), Toast.LENGTH_SHORT).show();
+
+                //adapter.addAll(devicesInfo);
+                adapter.notifyDataSetChanged();
+            }
         } else {
-            Toast.makeText(getApplicationContext(), "Service is NOT bounded", Toast.LENGTH_LONG).show();
+            if(toast)
+            Toast.makeText(getApplicationContext(), getString(R.string.string_notBounded), Toast.LENGTH_LONG).show();
         }
 
+    }
+
+    private class StartSensorActivity extends AsyncTask<Pair<InetAddress,Integer>,Void,DeviceInfo>
+    {
+        ProgressDialog progressDialog;
+        @Override
+        protected void onPreExecute()
+        {
+            progressDialog = ProgressDialog.show(MainActivity.this,getString(R.string.main_conn),getString(R.string.main_connWait));
+        }
+
+        @Override
+        protected DeviceInfo doInBackground(Pair<InetAddress, Integer>... params) {
+            try {
+                return sensorService.getDeviceInfo(params[0].first, params[0].second);
+            } catch (IOException ex)
+            {
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(DeviceInfo data)
+        {
+            progressDialog.dismiss();
+            if(data!=null) {
+                Intent intent = new Intent(MainActivity.this, DeviceActivity.class);
+                intent.putExtra("address", data.getAddress().getAddress());
+                intent.putExtra("port", data.getPort());
+                intent.putExtra("deviceID", data.getId());
+                startActivity(intent);
+            }
+            else
+            {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(getString(R.string.alert_title))
+                        .setMessage(getString(R.string.string_downloadError))
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                //
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
+        }
     }
 
     private class DownloadDeviceInfo extends AsyncTask<Map<InetAddress, Integer>, Void, Void> {
@@ -202,15 +299,22 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Map<InetAddress, Integer>... pairs) {
-            Map<InetAddress,Integer> map = pairs[0];
+            Map<InetAddress, Integer> map = pairs[0];
             Set<InetAddress> set = map.keySet();
-            for(InetAddress inetAddress : set) {
+            for (InetAddress inetAddress : set) {
                 InetAddress address = inetAddress;
                 Integer port = map.get(inetAddress);
-                DeviceInfo deviceInfo = sensorService.getDeviceInfo(address,port);
-                if(!devicesInfo.contains(deviceInfo)) {
-                    devicesInfo.add(deviceInfo);
-                    //adapter.add(deviceInfo);
+                try {
+                    DeviceInfo deviceInfo = sensorService.getDeviceInfo(address, port);
+
+                    if (!devicesInfo.contains(deviceInfo)) {
+                        //devicesInfo.add(deviceInfo);
+                        //adapter.add(deviceInfo);
+                    }
+                }
+                catch (IOException ex)
+                {
+
                 }
             }
             return null;
@@ -220,23 +324,22 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void data) {
 
             adapter.notifyDataSetChanged();
-            Toast.makeText(getApplicationContext(), "Found: " + devicesInfo.size(), Toast.LENGTH_LONG).show();
+            if(toast)
+            Toast.makeText(getApplicationContext(), getString(R.string.string_found) + devicesInfo.size(), Toast.LENGTH_LONG).show();
         }
 
     }
 
-    public class NSDReciever extends BroadcastReceiver
-    {
-        public NSDReciever()
-        {
+    public class NSDReciever extends BroadcastReceiver {
+        public NSDReciever() {
         }
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals(ACTION_CLIENTS_CHANGED))
-            {
+            if (intent.getAction().equals(ACTION_CLIENTS_CHANGED)) {
                 refreshList();
             }
         }
     }
 }
+

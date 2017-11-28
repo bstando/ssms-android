@@ -2,13 +2,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:descendantFocusability="blocksDescendants"
+    android:focusable="false"
+    android:focusableInTouchMode="false"
     tools:context=".SensorReadingsFragment">
 
     <!-- TODO: Update blank fragment layout -->
 
     <ListView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/readingsListView"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         android:layout_gravity="center_horizontal|top" />
 </FrameLayout>

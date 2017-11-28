@@ -1,9 +1,13 @@
 package lab.android.bartosz.ssms;
 
 
+
+import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class SensorData {
+public class SensorData implements Serializable{
     private long id;
     private long sensorId;
     private float temperature;
@@ -12,6 +16,7 @@ public class SensorData {
 
 
     public SensorData() {
+        id=-1;
     }
 
     public long getId() {
@@ -66,6 +71,12 @@ public class SensorData {
     @Override
     public String toString()
     {
-        return "Sensor ID:" + sensorId + ", Date: " + date.toString() + ", Temperature: " + temperature + ", Humidity: " + humidity;
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if(id!=-1) {
+            return "ID: " + id + ", Sensor ID: "+ sensorId+", "+ dateFormat.format(date);
+        } else
+        {
+            return "Sensor ID: "+ sensorId+", "+ dateFormat.format(date);
+        }
     }
 }

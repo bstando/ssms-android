@@ -25,10 +25,12 @@ public class SensorWidget extends AppWidgetProvider {
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.sensor_widget);
-        views.setTextViewText(R.id.widgetDeviceIDTextView,String.valueOf(last.getSensorId()));
-        views.setTextViewText(R.id.widgetHumidityTextView,String.valueOf(last.getHumidity()));
-        views.setTextViewText(R.id.widgetTemperatureTextView,String.valueOf(last.getTemperature()));
-        views.setTextViewText(R.id.widgetDateTextView,new StringBuilder(last.getDate().getHours()+":"+last.getDate().getMinutes()+":"+last.getDate().getSeconds()).toString());
+        if(last.getId()!=-1) {
+            views.setTextViewText(R.id.widgetDeviceIDTextView, String.valueOf(last.getSensorId()));
+            views.setTextViewText(R.id.widgetHumidityTextView, String.valueOf(last.getHumidity()));
+            views.setTextViewText(R.id.widgetTemperatureTextView, String.valueOf(last.getTemperature()));
+            views.setTextViewText(R.id.widgetDateTextView, new StringBuilder(last.getDate().getHours() + ":" + last.getDate().getMinutes() + ":" + last.getDate().getSeconds()).toString());
+        }
 
         Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context,0,intent,0);

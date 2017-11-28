@@ -3,8 +3,10 @@ package lab.android.bartosz.ssms;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -117,8 +119,8 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
             {
                 sensorData.setDate(null);
             }
-            sensorData.setHumidity(cursor.getFloat(3));
-            sensorData.setTemperature(cursor.getFloat(4));
+            sensorData.setHumidity(cursor.getFloat(4));
+            sensorData.setTemperature(cursor.getFloat(3));
             sensorDataList.add(sensorData);
 
         }
@@ -155,8 +157,8 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
             } catch (ParseException ex) {
                 sensorData.setDate(null);
             }
-            sensorData.setHumidity(cursor.getFloat(3));
-            sensorData.setTemperature(cursor.getFloat(4));
+            sensorData.setHumidity(cursor.getFloat(4));
+            sensorData.setTemperature(cursor.getFloat(3));
 
 
             cursor.close();
@@ -194,13 +196,57 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
             } catch (ParseException ex) {
                 sensorData.setDate(null);
             }
-            sensorData.setHumidity(cursor.getFloat(3));
-            sensorData.setTemperature(cursor.getFloat(4));
+            sensorData.setHumidity(cursor.getFloat(4));
+            sensorData.setTemperature(cursor.getFloat(3));
 
 
             cursor.close();
         }
         return sensorData;
+
+    }
+
+    public List<SensorData> getByDate(String date)
+    {
+
+        List<SensorData> sensorDataList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] projection = {
+                SensorDataContract.SensorDataCol._ID,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_DATE,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE,
+                SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY
+        };
+
+        String sortOrder =
+                SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + " ASC";
+
+        String where = SensorDataContract.SensorDataCol.COLUMN_NAME_DATE+" >= ?";
+        String[] whereArgs= {date};
+        Log.e("DATE",date);
+
+        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME,projection,where,whereArgs,null,null,sortOrder);
+
+
+        while (cursor.moveToNext())
+        {
+            SensorData sensorData = new SensorData();
+            sensorData.setId(cursor.getLong(0));
+            sensorData.setSensorId(cursor.getLong(1));
+            try {
+                sensorData.setDate(dateFormat.parse(cursor.getString(2)));
+            } catch (ParseException ex)
+            {
+                sensorData.setDate(null);
+            }
+            sensorData.setHumidity(cursor.getFloat(4));
+            sensorData.setTemperature(cursor.getFloat(3));
+            sensorDataList.add(sensorData);
+
+        }
+        cursor.close();
+        return sensorDataList;
 
     }
 
@@ -236,14 +282,26 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
             {
                 sensorData.setDate(null);
             }
-            sensorData.setHumidity(cursor.getFloat(3));
-            sensorData.setTemperature(cursor.getFloat(4));
+            sensorData.setHumidity(cursor.getFloat(4));
+            sensorData.setTemperature(cursor.getFloat(3));
             sensorDataList.add(sensorData);
 
         }
         cursor.close();
         return sensorDataList;
 
+    }
+
+    public long countRows()
+    {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return DatabaseUtils.queryNumEntries(db,SensorDataContract.SensorDataCol.TABLE_NAME);
+    }
+
+
+    public void reset()
+    {
+        onUpgrade(this.getWritableDatabase(),1,1);
     }
 
 }

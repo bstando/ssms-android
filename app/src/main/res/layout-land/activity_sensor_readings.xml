@@ -4,6 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:descendantFocusability="blocksDescendants"
+    android:focusable="false"
+    android:focusableInTouchMode="false"
     tools:context=".SensorReadingsActivity">
 
     <android.support.design.widget.AppBarLayout
@@ -34,6 +37,7 @@
         android:name="lab.android.bartosz.ssms.SensorReadingsFragment"
         tools:layout="@layout/fragment_sensor_readings"
         android:layout_weight="1"/>
+        <!--
     <fragment
         android:id="@+id/sensorReadingDetailFragment"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -43,6 +47,6 @@
         android:name="lab.android.bartosz.ssms.SensorReadingDetailFragment"
         tools:layout="@layout/fragment_sensor_reading_detail"
         android:layout_weight="1"/>
-
+        -->
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

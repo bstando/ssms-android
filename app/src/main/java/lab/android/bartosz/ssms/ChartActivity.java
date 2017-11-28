@@ -1,16 +1,21 @@
 package lab.android.bartosz.ssms;
 
 
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.style.TtsSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,7 +24,6 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.support.v4.app.FragmentActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
@@ -37,20 +41,29 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
 
+import java.io.File;
+import java.io.NotSerializableException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeListener, OnChartValueSelectedListener {
 
 
+    ProgressDialog dialog;
     private LineChart mChart;
-    private SeekBar mSeekBarX, mSeekBarY;
-    private TextView tvX, tvY;
-
+    //private SeekBar mSeekBarX, mSeekBarY;
+    //private TextView tvX, tvY;
+    boolean toast;
     //SensorDataDbHelper sensorDataDbHelper = new SensorDataDbHelper(this.getBaseContext());
     protected SensorService sensorService;
     //NsdHelper nsdHelper;
     protected boolean bounded = false;
+
+    private ArrayList<SensorData> sensorDataArrayList;
+    boolean temperature;
 
 
     @Override
@@ -59,7 +72,65 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         super.onStart();
         Intent intent = new Intent(this,SensorService.class);
         bindService(intent,connection, Context.BIND_AUTO_CREATE);
-        setData(20, 30);
+//        Bundle extras = getIntent().getExtras();
+//        String date = extras.getString("date");
+//        setData(date);
+//        //mChart.notifyDataSetChanged();
+//        mChart.invalidate();
+//        mChart.animate();
+//        mChart.animateX(3000);
+
+//
+//        mChart.animateX(2500);
+//
+//
+//        Typeface tf = Typeface.createFromAsset(getAssets(), "OpenSans-Regular.ttf");
+//
+//        // get the legend (only possible after setting data)
+//        Legend l = mChart.getLegend();
+//
+//        // modify the legend ...
+//        // l.setPosition(LegendPosition.LEFT_OF_CHART);
+//        l.setForm(LegendForm.LINE);
+//        l.setTypeface(tf);
+//        l.setTextSize(18f);
+//        l.setTextColor(Color.BLACK);
+//        l.setPosition(LegendPosition.BELOW_CHART_LEFT);
+////        l.setYOffset(11f);
+//
+//        XAxis xAxis = mChart.getXAxis();
+//
+//        xAxis.setTypeface(tf);
+//        xAxis.setTextSize(6f);
+//        xAxis.setTextColor(Color.BLACK);
+//        xAxis.setDrawGridLines(false);
+//        xAxis.setDrawAxisLine(false);
+//        xAxis.setSpaceBetweenLabels(10);
+//        xAxis.setLabelRotationAngle(90);
+//
+//        YAxis leftAxis = mChart.getAxisLeft();
+//        leftAxis.setTypeface(tf);
+//        leftAxis.setTextColor(ColorTemplate.getHoloBlue());
+//        leftAxis.setAxisMaxValue(100f);
+//        leftAxis.setAxisMinValue(-30f);
+//        leftAxis.setDrawGridLines(true);
+//        leftAxis.setGranularityEnabled(true);
+//
+//
+//        YAxis rightAxis = mChart.getAxisRight();
+//        rightAxis.setTypeface(tf);
+//        rightAxis.setTextColor(Color.RED);
+//        rightAxis.setAxisMaxValue(100f);
+//        rightAxis.setAxisMinValue(-30f);
+//        rightAxis.setDrawGridLines(false);
+//        rightAxis.setDrawZeroLine(false);
+//        rightAxis.setGranularityEnabled(false);
+
+
+        Log.e("DBG", "ON START");
+
+
+
         //sensorDataDbHelper = new SensorDataDbHelper(getApplicationContext());
         //nsdHelper = new NsdHelper(getApplicationContext());
 
@@ -91,11 +162,13 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         }
     };
 
+    /*
     @Override
     public void onBackPressed() {
         super.onBackPressed();
         //overridePendingTransition(R.anim.move_left_in_activity, R.anim.move_right_out_activity);
     }
+    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,16 +177,27 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_chart);
 
-        tvX = (TextView) findViewById(R.id.tvXMax);
-        tvY = (TextView) findViewById(R.id.tvYMax);
-        mSeekBarX = (SeekBar) findViewById(R.id.seekBar1);
-        mSeekBarY = (SeekBar) findViewById(R.id.seekBar2);
+        Bundle extrasBundle = getIntent().getExtras();
+        if(extrasBundle!=null) {
 
-        mSeekBarX.setProgress(45);
-        mSeekBarY.setProgress(100);
+            temperature = extrasBundle.getBoolean("temperature");
+            sensorDataArrayList = (ArrayList<SensorData>) extrasBundle.getSerializable("list");
+        }
+        else
+        {
+            this.finishActivity(0);
+        }
 
-        mSeekBarY.setOnSeekBarChangeListener(this);
-        mSeekBarX.setOnSeekBarChangeListener(this);
+//        tvX = (TextView) findViewById(R.id.tvXMax);
+//        tvY = (TextView) findViewById(R.id.tvYMax);
+//        mSeekBarX = (SeekBar) findViewById(R.id.seekBar1);
+//        mSeekBarY = (SeekBar) findViewById(R.id.seekBar2);
+//
+//        mSeekBarX.setProgress(45);
+//        mSeekBarY.setProgress(100);
+//
+//        mSeekBarY.setOnSeekBarChangeListener(this);
+//        mSeekBarX.setOnSeekBarChangeListener(this);
 
         mChart = (LineChart) findViewById(R.id.chart1);
         mChart.setOnChartValueSelectedListener(this);
@@ -140,9 +224,11 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         mChart.setBackgroundColor(Color.LTGRAY);
 
         // add data
+        setData();
 
 
         mChart.animateX(2500);
+
 
         Typeface tf = Typeface.createFromAsset(getAssets(), "OpenSans-Regular.ttf");
 
@@ -153,35 +239,59 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         // l.setPosition(LegendPosition.LEFT_OF_CHART);
         l.setForm(LegendForm.LINE);
         l.setTypeface(tf);
-        l.setTextSize(11f);
-        l.setTextColor(Color.WHITE);
+        l.setTextSize(18f);
+        l.setTextColor(Color.BLACK);
         l.setPosition(LegendPosition.BELOW_CHART_LEFT);
 //        l.setYOffset(11f);
 
         XAxis xAxis = mChart.getXAxis();
+
         xAxis.setTypeface(tf);
-        xAxis.setTextSize(12f);
-        xAxis.setTextColor(Color.WHITE);
+        xAxis.setTextSize(6f);
+        xAxis.setTextColor(Color.BLACK);
         xAxis.setDrawGridLines(false);
         xAxis.setDrawAxisLine(false);
-        xAxis.setSpaceBetweenLabels(1);
+        xAxis.setSpaceBetweenLabels(2);
+        xAxis.setLabelRotationAngle(90);
 
-        YAxis leftAxis = mChart.getAxisLeft();
-        leftAxis.setTypeface(tf);
-        leftAxis.setTextColor(ColorTemplate.getHoloBlue());
-        leftAxis.setAxisMaxValue(100f);
-        leftAxis.setAxisMinValue(-30f);
-        leftAxis.setDrawGridLines(true);
-        leftAxis.setGranularityEnabled(true);
 
-        YAxis rightAxis = mChart.getAxisRight();
-        rightAxis.setTypeface(tf);
-        rightAxis.setTextColor(Color.RED);
-        rightAxis.setAxisMaxValue(100f);
-        rightAxis.setAxisMinValue(-30f);
-        rightAxis.setDrawGridLines(false);
-        rightAxis.setDrawZeroLine(false);
-        rightAxis.setGranularityEnabled(false);
+        if (!temperature) {
+            YAxis humidityAxis = mChart.getAxisLeft();
+            humidityAxis.setTypeface(tf);
+            humidityAxis.setTextColor(ColorTemplate.getHoloBlue());
+            humidityAxis.setAxisMaxValue(100f);
+            humidityAxis.setAxisMinValue(0f);
+            humidityAxis.setDrawGridLines(true);
+            humidityAxis.setGranularityEnabled(true);
+            YAxis right = mChart.getAxisRight();
+            right.setTypeface(tf);
+            right.setTextColor(ColorTemplate.getHoloBlue());
+            right.setAxisMaxValue(100f);
+            right.setAxisMinValue(0f);
+            right.setDrawGridLines(false);
+            right.setGranularityEnabled(true);
+        } else {
+
+            YAxis temperatureAxis = mChart.getAxisLeft();
+            temperatureAxis.setTypeface(tf);
+            temperatureAxis.setTextColor(Color.RED);
+            temperatureAxis.setAxisMaxValue(50f);
+            temperatureAxis.setAxisMinValue(-30f);
+            temperatureAxis.setDrawGridLines(true);
+            temperatureAxis.setDrawZeroLine(true);
+            temperatureAxis.setGranularityEnabled(false);
+            YAxis right = mChart.getAxisRight();
+            right.setTypeface(tf);
+            right.setTextColor(Color.RED);
+            right.setAxisMaxValue(50f);
+            right.setAxisMinValue(-30f);
+            right.setDrawGridLines(false);
+            right.setDrawZeroLine(false);
+            right.setGranularityEnabled(false);
+        }
+        Log.e("DBG", "ON CREATE");
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        toast = prefs.getBoolean("show_toast",true);
     }
 
     @Override
@@ -315,13 +425,29 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
             }
 
             case R.id.actionSave: {
-                if (mChart.saveToPath("ssms" + System.currentTimeMillis(), "/gallery/")) {
-                    //mChart.saveToPath("test","/sdcard/")
-                    Toast.makeText(getApplicationContext(), "Saving SUCCESSFUL!",
-                            Toast.LENGTH_SHORT).show();
-                } else
-                    Toast.makeText(getApplicationContext(), "Saving FAILED!", Toast.LENGTH_SHORT)
-                            .show();
+                Date now = new Date();
+                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+                String str = dateFormat.format(now);
+                //String date = "" + now.getYear()+"-"+now.getMonth()+"-"+now.getDay()+"_"+now.getHours()+"-"+now.getMinutes()+"-"+now.getSeconds();
+                File folder = new File(Environment.getExternalStorageDirectory() +
+                        File.separator + "ssms");
+                boolean success = true;
+                if (!folder.exists()) {
+                    success = folder.mkdirs();
+                }
+                if (success) {
+                    // Do something on success
+                    if (mChart.saveToPath("ssms-" + str, "/ssms/")) {
+                        //mChart.saveToPath("test","/sdcard/")
+                        if (toast)
+                            Toast.makeText(getApplicationContext(), getString(R.string.save_success),
+                                    Toast.LENGTH_SHORT).show();
+                    } else if (toast)
+                        Toast.makeText(getApplicationContext(), getString(R.string.save_failed), Toast.LENGTH_SHORT)
+                                .show();
+                } else {
+                    // Do something else on failure
+                }
 
                 // mChart.saveToGallery("title"+System.currentTimeMillis())
                 break;
@@ -333,17 +459,21 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 
-        tvX.setText("" + (mSeekBarX.getProgress() + 1));
-        tvY.setText("" + (mSeekBarY.getProgress()));
+        //tvX.setText("" + (mSeekBarX.getProgress() + 1));
+        //tvY.setText("" + (mSeekBarY.getProgress()));
 
-        setData(mSeekBarX.getProgress() + 1, mSeekBarY.getProgress());
-
+        //setData(mSeekBarX.getProgress() + 1, mSeekBarY.getProgress());
+//        Bundle extras = getIntent().getExtras();
+//        String date = extras.getString("date");
+//        setData(date);
+        //setData();
         // redraw
         mChart.invalidate();
     }
 
 
-    private void setData(int count, float range) {
+    private void setData() {
+
 
         ArrayList<String> xVals = new ArrayList<String>();
         /*for (int i = 0; i < count; i++) {
@@ -362,7 +492,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         }
 
         */
-        ArrayList<Entry> yVals2 = new ArrayList<Entry>();
+        //ArrayList<Entry> yVals2 = new ArrayList<Entry>();
         /*
         for (int i = 0; i < count; i++) {
             float mult = range;
@@ -373,65 +503,103 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         }
         */
 
-        if(bounded) {
-            List<SensorData> sensorDatas = sensorService.getFromDatabase();
+
+            List<SensorData> sensorDatas = sensorDataArrayList;
             int k = 0;
-            for (SensorData sensorData : sensorDatas) {
-                xVals.add(sensorData.getDate().toString());
-                yVals1.add(new Entry(sensorData.getTemperature(), k));
-                yVals2.add(new Entry(sensorData.getHumidity(), k));
+            DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+
+        for (SensorData sensorData : sensorDatas) {
+
+                String text = dateFormat.format(sensorData.getDate());
+               /*
+                if(sensorData.getDate().getHours()<10)
+                {
+                    text += "0"+sensorData.getDate().getHours();
+                }
+                else
+                {
+                    text += sensorData.getDate().getHours();
+                }
+                if(sensorData.getDate().getMinutes()<10)
+                {
+                    text += ":0" + sensorData.getDate().getMinutes();
+                }
+                else
+                {
+                    text += ":"+ sensorData.getDate().getMinutes();
+                }
+                if(sensorData.getDate().getSeconds()<10)
+                {
+                    text += ":0"+ sensorData.getDate().getSeconds();
+                }
+                else
+                {
+                    text += ":"+ sensorData.getDate().getSeconds();
+                }
+               */
+                xVals.add(text);
+                if(temperature) {
+                    yVals1.add(new Entry(sensorData.getTemperature(), k));
+                } else {
+                    yVals1.add(new Entry(sensorData.getHumidity(), k));
+                }
                 k++;
             }
-        }
-        LineDataSet set1, set2;
+
+        LineDataSet set1; //, set2;
 
         if (mChart.getData() != null &&
                 mChart.getData().getDataSetCount() > 0) {
             set1 = (LineDataSet)mChart.getData().getDataSetByIndex(0);
-            set2 = (LineDataSet)mChart.getData().getDataSetByIndex(1);
-            set1.setYVals(yVals2);
-            set2.setYVals(yVals1);
+            //set2 = (LineDataSet)mChart.getData().getDataSetByIndex(1);
+            set1.setYVals(yVals1);
+            //set2.setYVals(yVals1);
             mChart.getData().setXVals(xVals);
             mChart.notifyDataSetChanged();
         } else {
             // create a dataset and give it a type
-            set1 = new LineDataSet(yVals1, "Temperature");
+            if(temperature) {
+                set1 = new LineDataSet(yVals1, getString(R.string.chart_temperature));
 
-            set1.setAxisDependency(AxisDependency.LEFT);
-            set1.setColor(ColorTemplate.getHoloBlue());
-            set1.setCircleColor(Color.WHITE);
-            set1.setLineWidth(2f);
-            set1.setCircleRadius(3f);
-            set1.setFillAlpha(65);
-            set1.setFillColor(ColorTemplate.getHoloBlue());
-            set1.setHighLightColor(Color.rgb(244, 117, 117));
-            set1.setDrawCircleHole(false);
-            //set1.setFillFormatter(new MyFillFormatter(0f));
-            //set1.setDrawHorizontalHighlightIndicator(false);
-            //set1.setVisible(false);
-            //set1.setCircleHoleColor(Color.WHITE);
+                set1.setAxisDependency(AxisDependency.LEFT);
+                set1.setColor(Color.RED);
+                set1.setCircleColor(Color.WHITE);
+                set1.setLineWidth(2f);
+                set1.setCircleRadius(3f);
+                set1.setFillAlpha(65);
+                set1.setFillColor(Color.RED);
+                set1.setHighLightColor(Color.rgb(244, 117, 117));
+                set1.setDrawCircleHole(false);
+            }
+            else {
+                //set1.setFillFormatter(new MyFillFormatter(0f));
+                //set1.setDrawHorizontalHighlightIndicator(false);
+                //set1.setVisible(false);
+                //set1.setCircleHoleColor(Color.WHITE);
 
-            // create a dataset and give it a type
-            set2 = new LineDataSet(yVals2, "Humidity");
-            set2.setAxisDependency(AxisDependency.RIGHT);
-            set2.setColor(Color.RED);
-            set2.setCircleColor(Color.WHITE);
-            set2.setLineWidth(2f);
-            set2.setCircleRadius(3f);
-            set2.setFillAlpha(65);
-            set2.setFillColor(Color.RED);
-            set2.setDrawCircleHole(false);
-            set2.setHighLightColor(Color.rgb(244, 117, 117));
+                // create a dataset and give it a type
+                set1 = new LineDataSet(yVals1, getString(R.string.chart_humidity));
+                set1.setAxisDependency(AxisDependency.LEFT);
+                set1.setColor(ColorTemplate.getHoloBlue());
+                set1.setCircleColor(Color.WHITE);
+                set1.setLineWidth(2f);
+                set1.setCircleRadius(3f);
+                set1.setFillAlpha(65);
+                set1.setFillColor(ColorTemplate.getHoloBlue());
+                set1.setDrawCircleHole(false);
+                set1.setHighLightColor(Color.rgb(244, 117, 117));
+            }
             //set2.setFillFormatter(new MyFillFormatter(900f));
 
             ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
-            dataSets.add(set2);
+            //dataSets.add(set2);
             dataSets.add(set1); // add the datasets
 
             // create a data object with the datasets
             LineData data = new LineData(xVals, dataSets);
-            data.setValueTextColor(Color.WHITE);
+            data.setValueTextColor(Color.BLACK);
             data.setValueTextSize(9f);
+
 
             // set data
             mChart.setData(data);
@@ -463,4 +631,5 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         // TODO Auto-generated method stub
 
     }
+
 }

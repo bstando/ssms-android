@@ -3,7 +3,7 @@
     <!-- A 'parent' preference, which enables/disables child preferences (below)
          when checked/unchecked. -->
     <SwitchPreference
-        android:defaultValue="true"
+        android:defaultValue="false"
         android:key="show_toast"
         android:title="@string/pref_show_toast"/>
 

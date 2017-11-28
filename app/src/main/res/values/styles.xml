@@ -6,7 +6,25 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:dialogTheme">@style/AppDialogTheme</item>
+
     </style>
+
+    <style name="AppDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <!-- Define color properties as desired -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">#000</item>
+        <item name="android:textColorHighlight">@color/colorAccent</item>
+        <item name="colorAccent">@color/colorPrimaryDark</item>
+        <item name="colorControlNormal">@color/colorPrimaryDark</item>
+        <!-- Define window properties as desired -->
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+    </style>
+
 
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>

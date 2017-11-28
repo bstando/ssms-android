@@ -1,9 +1,10 @@
 package lab.android.bartosz.ssms;
 
 
+import java.io.Serializable;
 import java.net.InetAddress;
 
-public class DeviceInfo {
+public class DeviceInfo implements Serializable{
     private int id;
     private String name;
     private String localization;

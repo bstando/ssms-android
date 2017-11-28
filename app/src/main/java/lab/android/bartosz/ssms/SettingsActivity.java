@@ -107,7 +107,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             // Show the Up button in the action bar.
-            actionBar.setDisplayHomeAsUpEnabled(true);
+            //actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }
 
@@ -132,7 +132,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            //startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -174,6 +175,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             int id = item.getItemId();
             if (id == android.R.id.home) {
                 startActivity(new Intent(getActivity(), SettingsActivity.class));
+                //finalize();
                 return true;
             }
             return super.onOptionsItemSelected(item);
