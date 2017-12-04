@@ -620,20 +620,13 @@ public class SensorService extends Service {
     }
 
     public boolean isConnectedViaWiFi() {
-        WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
+        assert wifiMgr != null;
         if (wifiMgr.isWifiEnabled()) { // Wi-Fi adapter is ON
-
             WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-            if(wifiInfo==null) return false;
-
-            if( wifiInfo.getNetworkId() == -1 ){
-                return false; // Not connected to an access point
-            }
-            return true; // Connected to an access point
+            return wifiInfo != null && wifiInfo.getNetworkId() != -1;
         }
-        else {
-            return false; // Wi-Fi adapter is OFF
-        }
+        else return false; // Wi-Fi adapter is OFF
     }
 }
