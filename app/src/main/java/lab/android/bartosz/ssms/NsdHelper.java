@@ -18,9 +18,9 @@ import java.util.Map;
 
 public class NsdHelper {
 
-    private NsdManager.ResolveListener resolveListener;
+    private NsdManager.ResolveListener sensorResolveListener;
     private NsdManager.ResolveListener collectorResolveListener;
-    private NsdManager.DiscoveryListener discoveryListener;
+    private NsdManager.DiscoveryListener sensorDiscoveryListener;
     private NsdManager.DiscoveryListener collectorDiscoveryListener;
     private NsdManager nsdManager;
     Context context;
@@ -34,15 +34,19 @@ public class NsdHelper {
     Map<InetAddress, Integer> mDSNList;
     Map<InetAddress, Integer> cmDNSList;
     List<MDNSDevice> devices;
+    List<MDNSDevice> sensorDevices;
+    List<MDNSDevice> collectorDevices;
 
     public NsdHelper(Context appContext) {
         mDSNList = new HashMap<>();
         cmDNSList = new HashMap<>();
         devices = new ArrayList<>();
+        sensorDevices = new ArrayList<>();
+        collectorDevices = new ArrayList<>();
         context = appContext;
         nsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        toast = prefs.getBoolean("show_toast",true);
+        toast = prefs.getBoolean("show_toast",false);
     }
 
     public void initializeNsd() {
@@ -52,17 +56,16 @@ public class NsdHelper {
 
 
     public void initializeResolveListener() {
-        resolveListener = new NsdManager.ResolveListener() {
+        sensorResolveListener = new NsdManager.ResolveListener() {
 
 
             @Override
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Called when the resolve fails.  Use the error code to debug.
                 Log.e(TAG, "Resolve failed " + errorCode + ", " + serviceInfo);
-                devices.clear();
                 if(NsdManager.FAILURE_ALREADY_ACTIVE == errorCode)
                 {
-                    nsdManager.resolveService(serviceInfo,resolveListener);
+                    nsdManager.resolveService(serviceInfo, sensorResolveListener);
                 }
 
             }
@@ -75,7 +78,7 @@ public class NsdHelper {
                 Log.e(TAG, "Host:" + host.getHostAddress() + ", Port:" + port + ", Service Type: " + serviceInfo.getServiceType());
                 if (serviceInfo.getServiceType().equals("._json._udp")) {
                     mDSNList.put(host, port);
-                    devices.add(new MDNSDevice(host, port, serviceInfo.getServiceName(), true));
+                    sensorDevices.add(new MDNSDevice(host, port, serviceInfo.getServiceName(), true));
                 }
                 Intent intent = new Intent(MainActivity.ACTION_CLIENTS_CHANGED);
                 context.sendBroadcast(intent);
@@ -88,7 +91,6 @@ public class NsdHelper {
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Called when the resolve fails.  Use the error code to debug.
                 Log.e(TAG, "Resolve failed " + errorCode + ", " + serviceInfo);
-                devices.clear();
                 if(errorCode==NsdManager.FAILURE_ALREADY_ACTIVE)
                 {
                     nsdManager.resolveService(serviceInfo,collectorResolveListener);
@@ -104,9 +106,7 @@ public class NsdHelper {
                 Log.e(TAG, "Host:" + host.getHostAddress() + ", Port:" + port + ", Service Type: " + serviceInfo.getServiceType());
                 if (serviceInfo.getServiceType().equals("._ssmsd._udp")) {
                     cmDNSList.put(host, port);
-                    devices.add(new MDNSDevice(host, port, serviceInfo.getServiceName(), false));
-                    if(toast)
-                    Toast.makeText(context,"OK: "+devices.size(),Toast.LENGTH_SHORT).show();
+                    collectorDevices.add(new MDNSDevice(host, port, serviceInfo.getServiceName(), false));
                 }
                 Intent intent = new Intent(MainActivity.ACTION_CLIENTS_CHANGED);
                 context.sendBroadcast(intent);
@@ -117,7 +117,7 @@ public class NsdHelper {
     public void initializeDiscoveryListener() {
 
         // Instantiate a new DiscoveryListener
-        discoveryListener = new NsdManager.DiscoveryListener() {
+        sensorDiscoveryListener = new NsdManager.DiscoveryListener() {
 
             //  Called as soon as service discovery begins.
             @Override
@@ -131,7 +131,7 @@ public class NsdHelper {
                 Log.e(TAG, "Service discovery success " + service);
                 if ((service.getServiceType().equals(SERVICE_TYPE)))
                 {
-                    nsdManager.resolveService(service, resolveListener);
+                    nsdManager.resolveService(service, sensorResolveListener);
                     Log.e(TAG, "Found machine: " + SERVICE_NAME);
 
                 } else {
@@ -145,32 +145,8 @@ public class NsdHelper {
                 // When the network service is no longer available.
                 // Internal bookkeeping code goes here.
                 Log.e(TAG, "service lost" + service);
-                devices.clear();
-                /*
-                //int port = service.getPort();
-                //InetAddress host = service.getHost();
-                //Log.e(TAG, "Host:" + host.getHostAddress() + ", Port:" + port + ", Service Type: " + service.getServiceType());
-                if (service.getServiceType().equals("._json._udp")) {
-                    if(mDSNList.containsKey(host)) {
-                        mDSNList.remove(host);
-                    }
-                    MDNSDevice dev = new MDNSDevice(host,port,service.getServiceName(),true);
-                    if(devices.contains(dev)) {
-                        devices.remove(dev);
-                    }
-                } else {
-                    if(cmDNSList.containsKey(host)) {
-                        cmDNSList.remove(host);
-                    }
-                    MDNSDevice dev = new MDNSDevice(host,port,service.getServiceName(),false);
-                    if(devices.contains(dev))
-                    {
-                        devices.remove(dev);
-                    }
-                }
-                Intent intent = new Intent(MainActivity.ACTION_CLIENTS_CHANGED);
-                context.sendBroadcast(intent);
-                */
+                sensorDevices.clear();
+
             }
 
             @Override
@@ -219,32 +195,8 @@ public class NsdHelper {
                 // When the network service is no longer available.
                 // Internal bookkeeping code goes here.
                 Log.e(TAG, "service lost" + service);
-                devices.clear();
-                /*
-                //int port = service.getPort();
-                //InetAddress host = service.getHost();
-                //Log.e(TAG, "Host:" + host.getHostAddress() + ", Port:" + port + ", Service Type: " + service.getServiceType());
-                if (service.getServiceType().equals("._json._udp")) {
-                    if(mDSNList.containsKey(host)) {
-                        mDSNList.remove(host);
-                    }
-                    MDNSDevice dev = new MDNSDevice(host,port,service.getServiceName(),true);
-                    if(devices.contains(dev)) {
-                        devices.remove(dev);
-                    }
-                } else {
-                    if(cmDNSList.containsKey(host)) {
-                        cmDNSList.remove(host);
-                    }
-                    MDNSDevice dev = new MDNSDevice(host,port,service.getServiceName(),false);
-                    if(devices.contains(dev))
-                    {
-                        devices.remove(dev);
-                    }
-                }
-                Intent intent = new Intent(MainActivity.ACTION_CLIENTS_CHANGED);
-                context.sendBroadcast(intent);
-                */
+                collectorDevices.clear();
+
             }
 
             @Override
@@ -268,12 +220,12 @@ public class NsdHelper {
 
 
     public void discoverServices() {
-        nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
+        nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, sensorDiscoveryListener);
         nsdManager.discoverServices(COLLECTOR_SERVICE_TYPE,NsdManager.PROTOCOL_DNS_SD,collectorDiscoveryListener);
     }
 
     public void stopDiscovery() {
-        nsdManager.stopServiceDiscovery(discoveryListener);
+        nsdManager.stopServiceDiscovery(sensorDiscoveryListener);
         nsdManager.stopServiceDiscovery(collectorDiscoveryListener);
     }
 
@@ -287,6 +239,9 @@ public class NsdHelper {
 
     public List<MDNSDevice> getAvailableDevices()
     {
+        devices.clear();
+        devices.addAll(sensorDevices);
+        devices.addAll(collectorDevices);
         return devices;
     }
 

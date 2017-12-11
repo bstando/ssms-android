@@ -51,8 +51,7 @@ public class SensorService extends Service {
 
     NotificationCompat.Builder mBuilder;
 
-    Map<InetAddress,Timer> taskMap = new HashMap<>();
-
+    Map<InetAddress, Timer> taskMap = new HashMap<>();
 
     private final IBinder binder = new LocalBinder();
 
@@ -60,11 +59,6 @@ public class SensorService extends Service {
         SensorService getService() {
             return SensorService.this;
         }
-    }
-
-    public void setHelpers(NsdHelper nsdHelper1, SensorDataDbHelper sensorDataDbHelper1) {
-        this.nsdHelper = nsdHelper1;
-        this.sensorDataDbHelper = sensorDataDbHelper1;
     }
 
     @Override
@@ -78,11 +72,11 @@ public class SensorService extends Service {
         mBuilder.setContentText(getString(R.string.notif_new_data));
         mBuilder.setSmallIcon(R.drawable.ic_info_black_24dp);
         Intent mIntent = new Intent(this, SensorReadingsActivity.class);
-        mIntent.putExtra("sensorID",0);
+        mIntent.putExtra("sensorID", 0);
         PendingIntent mPendingIntent = PendingIntent.getActivity(context, 0, mIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT);
         mBuilder.setContentIntent(mPendingIntent);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        toast = prefs.getBoolean("show_toast",true);
+        toast = prefs.getBoolean("show_toast", true);
         super.onCreate();
     }
 
@@ -120,23 +114,18 @@ public class SensorService extends Service {
         return nsdHelper.getAvailableConnections();
     }
 
-    public List<MDNSDevice> getDevices()
-    {
+    public List<MDNSDevice> getDevices() {
         return nsdHelper.getAvailableDevices();
     }
 
+    private class DownloadData extends AsyncTask<Pair<InetAddress, Integer>, Void, SensorData> {
 
-    private class DownloadData extends AsyncTask<Pair<InetAddress,Integer>, Void,SensorData>
-    {
-
-        protected DownloadData()
-        {
+        protected DownloadData() {
 
         }
 
         @Override
-        protected SensorData doInBackground(Pair<InetAddress,Integer>... pairs)
-        {
+        protected SensorData doInBackground(Pair<InetAddress, Integer>... pairs) {
             InetAddress address = pairs[0].first;
             Integer port = pairs[0].second;
             SensorData sensorData = new SensorData();
@@ -147,46 +136,41 @@ public class SensorService extends Service {
                 JSONObject json = new JSONObject();
                 json.put("id", 2);
                 String message = json.toString();
-                Log.d("SENSOR:",message);
+                Log.d("SENSOR:", message);
                 DatagramPacket dp = new DatagramPacket(message.getBytes(), message.length(), address, port);
                 dout.send(dp);
                 byte[] bMsg = new byte[256];
-                DatagramPacket datagramPacket = new DatagramPacket(bMsg,bMsg.length);
+                DatagramPacket datagramPacket = new DatagramPacket(bMsg, bMsg.length);
                 dout.receive(datagramPacket);
-                Log.d("TASK:",new String(bMsg));
-                Log.d("LENGTH:",String.valueOf(bMsg.length));
-                String jsonString = new String(bMsg,0,datagramPacket.getLength());
+                Log.d("TASK:", new String(bMsg));
+                Log.d("LENGTH:", String.valueOf(bMsg.length));
+                String jsonString = new String(bMsg, 0, datagramPacket.getLength());
                 JSONObject retJson = new JSONObject(jsonString);
                 sensorData.setDate(new Date());
                 sensorData.setSensorId(retJson.getInt("id"));
-                sensorData.setTemperature((float)retJson.getDouble("temperature"));
-                sensorData.setHumidity((float)retJson.getDouble("humidity"));
+                sensorData.setTemperature((float) retJson.getDouble("temperature"));
+                sensorData.setHumidity((float) retJson.getDouble("humidity"));
                 dout.close();
 
-           // } catch (SocketException ex) {
-           //     Log.e("ERROR:", ex.getMessage());
-            } catch (IOException e)
-           {
-              //Log.e("ERROR:", e.getMessage());
-               //stopTimerTask(address);
-               return null;
-            } catch (JSONException ex)
-            {
+
+            } catch (IOException e) {
+
+                return null;
+            } catch (JSONException ex) {
                 Log.e("ERROR:", ex.getMessage());
-            }                finally {
+            } finally {
                 if (dout != null) {
                     dout.close();
                 }
             }
 
-            Log.d("TASK",sensorData.toString());
+            Log.d("TASK", sensorData.toString());
             return sensorData;
         }
 
         @Override
-        protected void onPostExecute(SensorData sensorData)
-        {
-            if(sensorData!=null) {
+        protected void onPostExecute(SensorData sensorData) {
+            if (sensorData != null) {
                 insertToDatabase(sensorData);
                 if (toast)
                     Toast.makeText(getApplicationContext(), sensorData.toString(), Toast.LENGTH_LONG).show();
@@ -196,10 +180,9 @@ public class SensorService extends Service {
 
     }
 
-    public List<SensorData> getAddDataFromCollector(InetAddress address, int port) throws IOException
-    {
+    public List<SensorData> getAddDataFromCollector(InetAddress address, int port) throws IOException {
         List<SensorData> retData = new ArrayList<>();
-        DatagramSocket datagramSocket=null;
+        DatagramSocket datagramSocket = null;
         boolean hasNext = true;
 
         try {
@@ -212,26 +195,24 @@ public class SensorService extends Service {
             DatagramPacket sendDatagramPacket = new DatagramPacket(message.getBytes(), message.length(), address, port);
             datagramSocket.send(sendDatagramPacket);
 
-            while(hasNext) {
-                Log.e("DOWNLOAD","STARTING CHUNK DOWNLOAD");
+            while (hasNext) {
+                Log.e("DOWNLOAD", "STARTING CHUNK DOWNLOAD");
                 byte[] bMsg = new byte[1024];
                 DatagramPacket recieveDatagramPacket = new DatagramPacket(bMsg, bMsg.length);
                 datagramSocket.receive(recieveDatagramPacket);
-                Log.e("DOWNLOAD","PACKET DOWNLOADED, START PARSE");
+                Log.e("DOWNLOAD", "PACKET DOWNLOADED, START PARSE");
                 Log.d("TASK:", new String(bMsg));
                 Log.d("LENGTH:", String.valueOf(bMsg.length));
                 String jsonString = new String(bMsg, 0, recieveDatagramPacket.getLength());
                 JSONObject retJson = new JSONObject(jsonString);
-                if (retJson.length()==0)
-                {
-                    Log.e("DOWNLOAD","OH NO, PARSE IS WRONG");
+                if (retJson.length() == 0) {
+                    Log.e("DOWNLOAD", "OH NO, PARSE IS WRONG");
                 }
                 JSONArray array = retJson.getJSONArray("content");
-                if(array.length()==0)
-                {
-                    Log.e("DOWNLOAD","OH NO, ARRAY LENGTH IS 0");
+                if (array.length() == 0) {
+                    Log.e("DOWNLOAD", "OH NO, ARRAY LENGTH IS 0");
                 }
-                for(int i=0;i<retJson.getInt("content_length");i++) {
+                for (int i = 0; i < retJson.getInt("content_length"); i++) {
                     JSONObject object = array.getJSONObject(i);
                     SensorData sensorData = new SensorData();
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -244,22 +225,17 @@ public class SensorService extends Service {
                 }
 
                 hasNext = retJson.getBoolean("has_next");
-                Log.e("DOWNLOAD",String.valueOf(hasNext));
+                Log.e("DOWNLOAD", String.valueOf(hasNext));
 
             }
             datagramSocket.close();
 
 
-       // } catch (SocketException ex) {
-       //     Log.e("ERROR:", ex.getMessage());
-       // } catch (IOException e) {
-       //     Log.e("ERROR:", e.getMessage());
         } catch (JSONException ex) {
             Log.e("ERROR:", ex.getMessage());
         } catch (ParseException ex) {
             Log.e("ERROR:", ex.getMessage());
-        }
-        finally {
+        } finally {
             if (datagramSocket != null) {
                 datagramSocket.close();
             }
@@ -268,10 +244,9 @@ public class SensorService extends Service {
         return retData;
     }
 
-    public List<SensorData> getLimitDataFromCollector(InetAddress address, int port,int limit) throws IOException
-    {
+    public List<SensorData> getLimitDataFromCollector(InetAddress address, int port, int limit) throws IOException {
         List<SensorData> retData = new ArrayList<>();
-        DatagramSocket datagramSocket=null;
+        DatagramSocket datagramSocket = null;
         boolean hasNext = true;
 
         try {
@@ -279,32 +254,30 @@ public class SensorService extends Service {
             datagramSocket.setSoTimeout(20000);
             JSONObject json = new JSONObject();
             json.put("id", 1);
-            json.put("limit",limit);
+            json.put("limit", limit);
             String message = json.toString();
             Log.d("SENSOR:", message);
             DatagramPacket sendDatagramPacket = new DatagramPacket(message.getBytes(), message.length(), address, port);
             datagramSocket.send(sendDatagramPacket);
 
-            while(hasNext) {
-                Log.e("DOWNLOAD","STARTING CHUNK DOWNLOAD");
+            while (hasNext) {
+                Log.e("DOWNLOAD", "STARTING CHUNK DOWNLOAD");
                 byte[] bMsg = new byte[1024];
                 DatagramPacket recieveDatagramPacket = new DatagramPacket(bMsg, bMsg.length);
                 datagramSocket.receive(recieveDatagramPacket);
-                Log.e("DOWNLOAD","PACKET DOWNLOADED, START PARSE");
+                Log.e("DOWNLOAD", "PACKET DOWNLOADED, START PARSE");
                 Log.d("TASK:", new String(bMsg));
                 Log.d("LENGTH:", String.valueOf(bMsg.length));
                 String jsonString = new String(bMsg, 0, recieveDatagramPacket.getLength());
                 JSONObject retJson = new JSONObject(jsonString);
-                if (retJson.length()==0)
-                {
-                    Log.e("DOWNLOAD","OH NO, PARSE IS WRONG");
+                if (retJson.length() == 0) {
+                    Log.e("DOWNLOAD", "OH NO, PARSE IS WRONG");
                 }
                 JSONArray array = retJson.getJSONArray("content");
-                if(array.length()==0)
-                {
-                    Log.e("DOWNLOAD","OH NO, ARRAY LENGTH IS 0");
+                if (array.length() == 0) {
+                    Log.e("DOWNLOAD", "OH NO, ARRAY LENGTH IS 0");
                 }
-                for(int i=0;i<retJson.getInt("content_length");i++) {
+                for (int i = 0; i < retJson.getInt("content_length"); i++) {
                     JSONObject object = array.getJSONObject(i);
                     SensorData sensorData = new SensorData();
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -317,22 +290,17 @@ public class SensorService extends Service {
                 }
 
                 hasNext = retJson.getBoolean("has_next");
-                Log.e("DOWNLOAD",String.valueOf(hasNext));
+                Log.e("DOWNLOAD", String.valueOf(hasNext));
 
             }
             datagramSocket.close();
 
 
-        //} catch (SocketException ex) {
-        //    Log.e("ERROR:", ex.getMessage());
-        //} catch (IOException e) {
-        //    Log.e("ERROR:", e.getMessage());
         } catch (JSONException ex) {
             Log.e("ERROR:", ex.getMessage());
         } catch (ParseException ex) {
             Log.e("ERROR:", ex.getMessage());
-        }
-        finally {
+        } finally {
             if (datagramSocket != null) {
                 datagramSocket.close();
             }
@@ -341,10 +309,9 @@ public class SensorService extends Service {
         return retData;
     }
 
-    public List<SensorData> getDataSinceFromCollector(InetAddress address, int port,String since) throws IOException
-    {
+    public List<SensorData> getDataSinceFromCollector(InetAddress address, int port, String since) throws IOException {
         List<SensorData> retData = new ArrayList<>();
-        DatagramSocket datagramSocket=null;
+        DatagramSocket datagramSocket = null;
         boolean hasNext = true;
 
         try {
@@ -352,32 +319,30 @@ public class SensorService extends Service {
             datagramSocket.setSoTimeout(20000);
             JSONObject json = new JSONObject();
             json.put("id", 2);
-            json.put("date",since);
+            json.put("date", since);
             String message = json.toString();
             Log.d("SENSOR:", message);
             DatagramPacket sendDatagramPacket = new DatagramPacket(message.getBytes(), message.length(), address, port);
             datagramSocket.send(sendDatagramPacket);
 
-            while(hasNext) {
-                Log.e("DOWNLOAD","STARTING CHUNK DOWNLOAD");
+            while (hasNext) {
+                Log.e("DOWNLOAD", "STARTING CHUNK DOWNLOAD");
                 byte[] bMsg = new byte[1024];
                 DatagramPacket recieveDatagramPacket = new DatagramPacket(bMsg, bMsg.length);
                 datagramSocket.receive(recieveDatagramPacket);
-                Log.e("DOWNLOAD","PACKET DOWNLOADED, START PARSE");
+                Log.e("DOWNLOAD", "PACKET DOWNLOADED, START PARSE");
                 Log.d("TASK:", new String(bMsg));
                 Log.d("LENGTH:", String.valueOf(bMsg.length));
                 String jsonString = new String(bMsg, 0, recieveDatagramPacket.getLength());
                 JSONObject retJson = new JSONObject(jsonString);
-                if (retJson.length()==0)
-                {
-                    Log.e("DOWNLOAD","OH NO, PARSE IS WRONG");
+                if (retJson.length() == 0) {
+                    Log.e("DOWNLOAD", "OH NO, PARSE IS WRONG");
                 }
                 JSONArray array = retJson.getJSONArray("content");
-                if(array.length()==0)
-                {
-                    Log.e("DOWNLOAD","OH NO, ARRAY LENGTH IS 0");
+                if (array.length() == 0) {
+                    Log.e("DOWNLOAD", "OH NO, ARRAY LENGTH IS 0");
                 }
-                for(int i=0;i<retJson.getInt("content_length");i++) {
+                for (int i = 0; i < retJson.getInt("content_length"); i++) {
                     JSONObject object = array.getJSONObject(i);
                     SensorData sensorData = new SensorData();
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -390,22 +355,17 @@ public class SensorService extends Service {
                 }
 
                 hasNext = retJson.getBoolean("has_next");
-                Log.e("DOWNLOAD",String.valueOf(hasNext));
+                Log.e("DOWNLOAD", String.valueOf(hasNext));
 
             }
             datagramSocket.close();
 
 
-        //} catch (SocketException ex) {
-        //    Log.e("ERROR:", ex.getMessage());
-        //} catch (IOException e) {
-        //    Log.e("ERROR:", e.getMessage());
         } catch (JSONException ex) {
             Log.e("ERROR:", ex.getMessage());
         } catch (ParseException ex) {
             Log.e("ERROR:", ex.getMessage());
-        }
-        finally {
+        } finally {
             if (datagramSocket != null) {
                 datagramSocket.close();
             }
@@ -414,8 +374,7 @@ public class SensorService extends Service {
         return retData;
     }
 
-    public SensorData getDataFromDevice(InetAddress address, int port) throws IOException
-    {
+    public SensorData getDataFromDevice(InetAddress address, int port) throws IOException {
         SensorData sensorData = new SensorData();
         DatagramSocket datagramSocket = null;
         try {
@@ -440,10 +399,7 @@ public class SensorService extends Service {
             sensorData.setHumidity((float) retJson.getDouble("humidity"));
             datagramSocket.close();
 
-        //} catch (SocketException ex) {
-        //    Log.e("ERROR:", ex.getMessage());
-        //} catch (IOException e) {
-        //    Log.e("ERROR:", e.getMessage());
+
         } catch (JSONException ex) {
             Log.e("ERROR:", ex.getMessage());
         } finally {
@@ -455,8 +411,7 @@ public class SensorService extends Service {
 
     }
 
-    public DeviceInfo getDeviceInfo(InetAddress address, int port) throws IOException
-    {
+    public DeviceInfo getDeviceInfo(InetAddress address, int port) throws IOException {
         DeviceInfo deviceInfo = new DeviceInfo();
         deviceInfo.setAddress(address);
         deviceInfo.setPort(port);
@@ -481,10 +436,7 @@ public class SensorService extends Service {
             deviceInfo.setName(retJson.getString("name"));
             deviceInfo.setLocalization(retJson.getString("localization"));
             datagramSocket.close();
-        //} catch (SocketException ex) {
-        //    Log.e("ERROR:", ex.getMessage());
-        //} catch (IOException e) {
-        //    Log.e("ERROR:", e.getMessage());
+
         } catch (JSONException ex) {
             Log.e("ERROR:", ex.getMessage());
         } finally {
@@ -496,62 +448,7 @@ public class SensorService extends Service {
 
     }
 
-
-    public void getDataFromSensor(InetAddress address, int port) {
-
-        DownloadData data = new DownloadData();
-        data.execute(new Pair<InetAddress, Integer>(address,port));
-
-
-        //return new DownloadData().doInBackground();
-
-    }
-
-    public SensorData runSomeTest(final InetAddress address, final int port)
-    {
-        final SensorData sensorData = new SensorData();
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                DatagramSocket dout = null;
-                try {
-                    dout = new DatagramSocket(port);
-                    JSONObject json = new JSONObject();
-                    json.put("id", 2);
-                    String message = json.toString();
-                    Log.d("SENSOR:", message);
-                    DatagramPacket dp = new DatagramPacket(message.getBytes(), message.length(), address, port);
-                    dout.send(dp);
-                    byte[] bMsg = new byte[256];
-                    DatagramPacket datagramPacket = new DatagramPacket(bMsg, bMsg.length);
-                    dout.receive(datagramPacket);
-                    Log.d("TASK:", new String(bMsg));
-                    Log.d("LENGTH:", String.valueOf(bMsg.length));
-                    String jsonString = new String(bMsg, 0, datagramPacket.getLength());
-                    JSONObject retJson = new JSONObject(jsonString);
-                    sensorData.setDate(new Date());
-                    sensorData.setTemperature((float) retJson.getDouble("temperature"));
-                    sensorData.setHumidity((float) retJson.getDouble("humidity"));
-                    dout.close();
-                    insertToDatabase(sensorData);
-
-                } catch (SocketException ex) {
-                    Log.e("ERROR:", ex.getMessage());
-                } catch (IOException e) {
-                    Log.e("ERROR:", e.getMessage());
-                } catch (JSONException ex) {
-                    Log.e("ERROR:", ex.getMessage());
-                } finally {
-                    if (dout != null) {
-                        dout.close();
-                    }
-                }
-            }
-        });
-        return sensorData;
-    }
-
-    boolean startTimerTask(final InetAddress address,final int port, long interval) {
+    boolean startTimerTask(final InetAddress address, final int port, long interval) {
         if (!taskMap.containsKey(address)) {
             TimerTask timerTask = new TimerTask() {
                 @Override
@@ -559,63 +456,53 @@ public class SensorService extends Service {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            Pair<InetAddress,Integer> pair = new Pair<InetAddress, Integer>(address,port);
+                            Pair<InetAddress, Integer> pair = new Pair<InetAddress, Integer>(address, port);
                             new DownloadData().execute(pair);
                         }
                     });
                 }
             };
             Timer timer = new Timer();
-            timer.scheduleAtFixedRate(timerTask,0,interval);
-            taskMap.put(address,timer);
+            timer.scheduleAtFixedRate(timerTask, 0, interval);
+            taskMap.put(address, timer);
             return true;
-        }
-        else return false;
+        } else return false;
     }
 
-    boolean stopTimerTask(InetAddress address)
-    {
-        if(taskMap.containsKey(address)) {
+    boolean stopTimerTask(InetAddress address) {
+        if (taskMap.containsKey(address)) {
             Timer timer = taskMap.get(address);
             timer.cancel();
             taskMap.remove(address);
             return true;
-        }
-        else return false;
+        } else return false;
     }
 
-    public List<SensorData> getBySensorID (int sensorID)
-    {
+    public List<SensorData> getBySensorID(int sensorID) {
         return sensorDataDbHelper.getByDeviceID(sensorID);
     }
 
-    public List<SensorData> getDataSinceFromDatabase(String date)
-    {
+    public List<SensorData> getDataSinceFromDatabase(String date) {
         return sensorDataDbHelper.getByDate(date);
     }
 
-    public SensorData getByID(long id)
-    {
+    public SensorData getByID(long id) {
         return sensorDataDbHelper.getByID(id);
     }
 
-    public void updateSensorData(SensorData sensorData)
-    {
+    public void updateSensorData(SensorData sensorData) {
         sensorDataDbHelper.updateData(sensorData);
     }
 
-    public void removeFromDatabase(long id)
-    {
+    public void removeFromDatabase(long id) {
         sensorDataDbHelper.deleteData(id);
     }
 
-    public long getDatabaseRowsCount()
-    {
+    public long getDatabaseRowsCount() {
         return sensorDataDbHelper.countRows();
     }
 
-    public void resetDatabase()
-    {
+    public void resetDatabase() {
         sensorDataDbHelper.reset();
     }
 
@@ -626,7 +513,6 @@ public class SensorService extends Service {
         if (wifiMgr.isWifiEnabled()) { // Wi-Fi adapter is ON
             WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
             return wifiInfo != null && wifiInfo.getNetworkId() != -1;
-        }
-        else return false; // Wi-Fi adapter is OFF
+        } else return false; // Wi-Fi adapter is OFF
     }
 }
