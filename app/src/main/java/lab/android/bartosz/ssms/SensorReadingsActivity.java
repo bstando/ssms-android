@@ -125,8 +125,6 @@ public class SensorReadingsActivity extends AppCompatActivity {
         ArrayAdapter<SensorData> arrayAdapter = new ArrayAdapter<SensorData>(this,android.R.layout.simple_list_item_1,sensorDataArrayList);
         listView.setAdapter(arrayAdapter);
 
-
-
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -136,14 +134,6 @@ public class SensorReadingsActivity extends AppCompatActivity {
                 android.support.v4.app.FragmentManager fm = getSupportFragmentManager();
                 SensorDialog sensorDialog = SensorDialog.createNewInstance(sensorData);
                 sensorDialog.show(fm,"tag");
-//                if(!isSensorReadingDetailFragmentInLayout) {
-//                    Intent intent = new Intent(getApplicationContext(), SensorReadingDetailActivity.class);
-//                    intent.putExtra("id", sensorData.getId());
-//                    startActivity(intent);
-//                } else
-//                {
-//                    makeInterface(sensorData);
-//                }
             }
         });
 

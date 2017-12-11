@@ -49,17 +49,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeListener, OnChartValueSelectedListener {
+public class ChartActivity extends AppCompatActivity implements OnChartValueSelectedListener {
 
-
-    ProgressDialog dialog;
     private LineChart mChart;
-    //private SeekBar mSeekBarX, mSeekBarY;
-    //private TextView tvX, tvY;
     boolean toast;
-    //SensorDataDbHelper sensorDataDbHelper = new SensorDataDbHelper(this.getBaseContext());
     protected SensorService sensorService;
-    //NsdHelper nsdHelper;
     protected boolean bounded = false;
 
     private ArrayList<SensorData> sensorDataArrayList;
@@ -67,72 +61,12 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
 
 
     @Override
-    protected void onStart()
-    {
+    protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this,SensorService.class);
-        bindService(intent,connection, Context.BIND_AUTO_CREATE);
-//        Bundle extras = getIntent().getExtras();
-//        String date = extras.getString("date");
-//        setData(date);
-//        //mChart.notifyDataSetChanged();
-//        mChart.invalidate();
-//        mChart.animate();
-//        mChart.animateX(3000);
-
-//
-//        mChart.animateX(2500);
-//
-//
-//        Typeface tf = Typeface.createFromAsset(getAssets(), "OpenSans-Regular.ttf");
-//
-//        // get the legend (only possible after setting data)
-//        Legend l = mChart.getLegend();
-//
-//        // modify the legend ...
-//        // l.setPosition(LegendPosition.LEFT_OF_CHART);
-//        l.setForm(LegendForm.LINE);
-//        l.setTypeface(tf);
-//        l.setTextSize(18f);
-//        l.setTextColor(Color.BLACK);
-//        l.setPosition(LegendPosition.BELOW_CHART_LEFT);
-////        l.setYOffset(11f);
-//
-//        XAxis xAxis = mChart.getXAxis();
-//
-//        xAxis.setTypeface(tf);
-//        xAxis.setTextSize(6f);
-//        xAxis.setTextColor(Color.BLACK);
-//        xAxis.setDrawGridLines(false);
-//        xAxis.setDrawAxisLine(false);
-//        xAxis.setSpaceBetweenLabels(10);
-//        xAxis.setLabelRotationAngle(90);
-//
-//        YAxis leftAxis = mChart.getAxisLeft();
-//        leftAxis.setTypeface(tf);
-//        leftAxis.setTextColor(ColorTemplate.getHoloBlue());
-//        leftAxis.setAxisMaxValue(100f);
-//        leftAxis.setAxisMinValue(-30f);
-//        leftAxis.setDrawGridLines(true);
-//        leftAxis.setGranularityEnabled(true);
-//
-//
-//        YAxis rightAxis = mChart.getAxisRight();
-//        rightAxis.setTypeface(tf);
-//        rightAxis.setTextColor(Color.RED);
-//        rightAxis.setAxisMaxValue(100f);
-//        rightAxis.setAxisMinValue(-30f);
-//        rightAxis.setDrawGridLines(false);
-//        rightAxis.setDrawZeroLine(false);
-//        rightAxis.setGranularityEnabled(false);
-
+        Intent intent = new Intent(this, SensorService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
         Log.e("DBG", "ON START");
-
-
-
-        //sensorDataDbHelper = new SensorDataDbHelper(getApplicationContext());
-        //nsdHelper = new NsdHelper(getApplicationContext());
 
     }
 
@@ -162,13 +96,6 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         }
     };
 
-    /*
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        //overridePendingTransition(R.anim.move_left_in_activity, R.anim.move_right_out_activity);
-    }
-    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,26 +105,14 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         setContentView(R.layout.activity_chart);
 
         Bundle extrasBundle = getIntent().getExtras();
-        if(extrasBundle!=null) {
+        if (extrasBundle != null) {
 
             temperature = extrasBundle.getBoolean("temperature");
             sensorDataArrayList = (ArrayList<SensorData>) extrasBundle.getSerializable("list");
-        }
-        else
-        {
+        } else {
             this.finishActivity(0);
         }
 
-//        tvX = (TextView) findViewById(R.id.tvXMax);
-//        tvY = (TextView) findViewById(R.id.tvYMax);
-//        mSeekBarX = (SeekBar) findViewById(R.id.seekBar1);
-//        mSeekBarY = (SeekBar) findViewById(R.id.seekBar2);
-//
-//        mSeekBarX.setProgress(45);
-//        mSeekBarY.setProgress(100);
-//
-//        mSeekBarY.setOnSeekBarChangeListener(this);
-//        mSeekBarX.setOnSeekBarChangeListener(this);
 
         mChart = (LineChart) findViewById(R.id.chart1);
         mChart.setOnChartValueSelectedListener(this);
@@ -291,7 +206,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         }
         Log.e("DBG", "ON CREATE");
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        toast = prefs.getBoolean("show_toast",true);
+        toast = prefs.getBoolean("show_toast", true);
     }
 
     @Override
@@ -364,7 +279,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
                     LineDataSet set = (LineDataSet) iSet;
                     set.setMode(set.getMode() == LineDataSet.Mode.CUBIC_BEZIER
                             ? LineDataSet.Mode.LINEAR
-                            :  LineDataSet.Mode.CUBIC_BEZIER);
+                            : LineDataSet.Mode.CUBIC_BEZIER);
                 }
                 mChart.invalidate();
                 break;
@@ -378,7 +293,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
                     LineDataSet set = (LineDataSet) iSet;
                     set.setMode(set.getMode() == LineDataSet.Mode.STEPPED
                             ? LineDataSet.Mode.LINEAR
-                            :  LineDataSet.Mode.STEPPED);
+                            : LineDataSet.Mode.STEPPED);
                 }
                 mChart.invalidate();
                 break;
@@ -392,7 +307,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
                     LineDataSet set = (LineDataSet) iSet;
                     set.setMode(set.getMode() == LineDataSet.Mode.HORIZONTAL_BEZIER
                             ? LineDataSet.Mode.LINEAR
-                            :  LineDataSet.Mode.HORIZONTAL_BEZIER);
+                            : LineDataSet.Mode.HORIZONTAL_BEZIER);
                 }
                 mChart.invalidate();
                 break;
@@ -456,101 +371,36 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         return true;
     }
 
-    @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-        //tvX.setText("" + (mSeekBarX.getProgress() + 1));
-        //tvY.setText("" + (mSeekBarY.getProgress()));
-
-        //setData(mSeekBarX.getProgress() + 1, mSeekBarY.getProgress());
-//        Bundle extras = getIntent().getExtras();
-//        String date = extras.getString("date");
-//        setData(date);
-        //setData();
-        // redraw
-        mChart.invalidate();
-    }
-
 
     private void setData() {
 
 
         ArrayList<String> xVals = new ArrayList<String>();
-        /*for (int i = 0; i < count; i++) {
-            xVals.add((i) + "");
-        } */
 
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
 
-        /*
-        for (int i = 0; i < count; i++) {
-            float mult = range / 2f;
-            float val = (float) (Math.random() * mult) + 50;// + (float)
-            // ((mult *
-            // 0.1) / 10);
-            yVals1.add(new Entry(val, i));
-        }
-
-        */
-        //ArrayList<Entry> yVals2 = new ArrayList<Entry>();
-        /*
-        for (int i = 0; i < count; i++) {
-            float mult = range;
-            float val = (float) (Math.random() * mult) + 450;// + (float)
-            // ((mult *
-            // 0.1) / 10);
-            yVals2.add(new Entry(val, i));
-        }
-        */
-
-
-            List<SensorData> sensorDatas = sensorDataArrayList;
-            int k = 0;
-            DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        List<SensorData> sensorDatas = sensorDataArrayList;
+        int k = 0;
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
         for (SensorData sensorData : sensorDatas) {
 
-                String text = dateFormat.format(sensorData.getDate());
-               /*
-                if(sensorData.getDate().getHours()<10)
-                {
-                    text += "0"+sensorData.getDate().getHours();
-                }
-                else
-                {
-                    text += sensorData.getDate().getHours();
-                }
-                if(sensorData.getDate().getMinutes()<10)
-                {
-                    text += ":0" + sensorData.getDate().getMinutes();
-                }
-                else
-                {
-                    text += ":"+ sensorData.getDate().getMinutes();
-                }
-                if(sensorData.getDate().getSeconds()<10)
-                {
-                    text += ":0"+ sensorData.getDate().getSeconds();
-                }
-                else
-                {
-                    text += ":"+ sensorData.getDate().getSeconds();
-                }
-               */
-                xVals.add(text);
-                if(temperature) {
-                    yVals1.add(new Entry(sensorData.getTemperature(), k));
-                } else {
-                    yVals1.add(new Entry(sensorData.getHumidity(), k));
-                }
-                k++;
+            String text = dateFormat.format(sensorData.getDate());
+
+            xVals.add(text);
+            if (temperature) {
+                yVals1.add(new Entry(sensorData.getTemperature(), k));
+            } else {
+                yVals1.add(new Entry(sensorData.getHumidity(), k));
             }
+            k++;
+        }
 
         LineDataSet set1; //, set2;
 
         if (mChart.getData() != null &&
                 mChart.getData().getDataSetCount() > 0) {
-            set1 = (LineDataSet)mChart.getData().getDataSetByIndex(0);
+            set1 = (LineDataSet) mChart.getData().getDataSetByIndex(0);
             //set2 = (LineDataSet)mChart.getData().getDataSetByIndex(1);
             set1.setYVals(yVals1);
             //set2.setYVals(yVals1);
@@ -558,7 +408,7 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
             mChart.notifyDataSetChanged();
         } else {
             // create a dataset and give it a type
-            if(temperature) {
+            if (temperature) {
                 set1 = new LineDataSet(yVals1, getString(R.string.chart_temperature));
 
                 set1.setAxisDependency(AxisDependency.LEFT);
@@ -570,14 +420,8 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
                 set1.setFillColor(Color.RED);
                 set1.setHighLightColor(Color.rgb(244, 117, 117));
                 set1.setDrawCircleHole(false);
-            }
-            else {
-                //set1.setFillFormatter(new MyFillFormatter(0f));
-                //set1.setDrawHorizontalHighlightIndicator(false);
-                //set1.setVisible(false);
-                //set1.setCircleHoleColor(Color.WHITE);
+            } else {
 
-                // create a dataset and give it a type
                 set1 = new LineDataSet(yVals1, getString(R.string.chart_humidity));
                 set1.setAxisDependency(AxisDependency.LEFT);
                 set1.setColor(ColorTemplate.getHoloBlue());
@@ -611,25 +455,12 @@ public class ChartActivity extends AppCompatActivity implements OnSeekBarChangeL
         Log.i("Entry selected", e.toString());
 
         mChart.centerViewToAnimated(e.getXIndex(), e.getVal(), mChart.getData().getDataSetByIndex(dataSetIndex).getAxisDependency(), 500);
-        //mChart.zoomAndCenterAnimated(2.5f, 2.5f, e.getXIndex(), e.getVal(), mChart.getData().getDataSetByIndex(dataSetIndex).getAxisDependency(), 1000);
-        //mChart.zoomAndCenterAnimated(1.8f, 1.8f, e.getXIndex(), e.getVal(), mChart.getData().getDataSetByIndex(dataSetIndex).getAxisDependency(), 1000);
+
     }
 
     @Override
     public void onNothingSelected() {
         Log.i("Nothing selected", "Nothing selected.");
-    }
-
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-        // TODO Auto-generated method stub
-
     }
 
 }
