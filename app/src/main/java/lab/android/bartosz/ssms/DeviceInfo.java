@@ -4,57 +4,55 @@ package lab.android.bartosz.ssms;
 import java.io.Serializable;
 import java.net.InetAddress;
 
-public class DeviceInfo implements Serializable{
+public class DeviceInfo implements Serializable {
     private int id;
     private String name;
     private String localization;
     private InetAddress address;
     private int port;
 
-    public int getId()
-    {
+    public int getId() {
         return id;
     }
-    public String getName()
-    {
+
+    public String getName() {
         return name;
     }
-    public String getLocalization()
-    {
+
+    public String getLocalization() {
         return localization;
     }
-    public InetAddress getAddress()
-    {
+
+    public InetAddress getAddress() {
         return address;
     }
-    public int getPort()
-    {
+
+    public int getPort() {
         return port;
     }
-    public void setId(int value)
-    {
+
+    public void setId(int value) {
         this.id = value;
     }
-    public void setName(String value)
-    {
+
+    public void setName(String value) {
         this.name = value;
     }
-    public void setLocalization(String value)
-    {
+
+    public void setLocalization(String value) {
         this.localization = value;
     }
-    public void setAddress(InetAddress value)
-    {
+
+    public void setAddress(InetAddress value) {
         this.address = value;
     }
-    public void setPort(int value)
-    {
+
+    public void setPort(int value) {
         this.port = value;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "Name: " + name + ", ID: " + id;
     }
 }

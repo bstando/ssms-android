@@ -64,7 +64,7 @@ public class MDNSDevice {
             head = "Collector: ";
         }
 
-        return head + serviceName + ", Address: " + address.toString() + ", Port: " + port;
+        return head + serviceName + ", IP: " + address.toString() + ", Port: " + port;
     }
 
 }

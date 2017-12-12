@@ -97,6 +97,7 @@ public class SensorService extends Service {
 
     public void startSearching() {
         if (!searching) {
+            nsdHelper.clearLists();
             nsdHelper.discoverServices();
             searching = true;
         }

@@ -19,8 +19,7 @@ public class SensorReadingsFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public interface SensorReadingsFragmentListener
-    {
+    public interface SensorReadingsFragmentListener {
         public void loadData();
     }
 

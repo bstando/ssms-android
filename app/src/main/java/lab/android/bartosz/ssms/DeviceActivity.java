@@ -49,7 +49,6 @@ public class DeviceActivity extends AppCompatActivity {
     boolean toast;
 
 
-
     protected SensorService sensorService;
     protected boolean bounded = false;
 
@@ -61,7 +60,7 @@ public class DeviceActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        toast = prefs.getBoolean("show_toast",true);
+        toast = prefs.getBoolean("show_toast", true);
 
         Bundle extrasBundle = getIntent().getExtras();
         if (extrasBundle != null) {
@@ -119,7 +118,7 @@ public class DeviceActivity extends AppCompatActivity {
     }
 
     public void showSensorData() {
-        if(sensorService.getDatabaseRowsCount()==0) {
+        if (sensorService.getDatabaseRowsCount() == 0) {
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.alert_title))
                     .setMessage(getString(R.string.string_noDatabaseCount))
@@ -130,8 +129,7 @@ public class DeviceActivity extends AppCompatActivity {
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
-        }
-        else {
+        } else {
             Intent intent = new Intent(getApplicationContext(), SensorReadingsActivity.class);
             intent.putExtra("sensorID", deviceID);
             startActivity(intent);
@@ -176,6 +174,17 @@ public class DeviceActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        if (bounded) {
+            unbindService(connection);
+            bounded = false;
+        }
+        super.onDestroy();
+    }
+
+
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -198,9 +207,8 @@ public class DeviceActivity extends AppCompatActivity {
         downloadData.execute(new Pair<InetAddress, Integer>(address, port));
     }
 
-    void showNoRowsWarning(final boolean temp)
-    {
-        if(sensorService.getDatabaseRowsCount()==0) {
+    void showNoRowsWarning(final boolean temp) {
+        if (sensorService.getDatabaseRowsCount() == 0) {
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.alert_title))
                     .setMessage(getString(R.string.string_noDatabaseCount))
@@ -211,8 +219,7 @@ public class DeviceActivity extends AppCompatActivity {
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
-        } else
-        {
+        } else {
             showChart(temp);
         }
     }
@@ -262,8 +269,8 @@ public class DeviceActivity extends AppCompatActivity {
                 dialog = ProgressDialog.show(DeviceActivity.this, getString(R.string.string_loading), getString(R.string.string_starting));
                 ArrayList<SensorData> sensorDatas = (ArrayList<SensorData>) sensorService.getDataSinceFromDatabase(date);
                 Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
-                intent.putExtra("list",sensorDatas);
-                intent.putExtra("temperature",temperature);
+                intent.putExtra("list", sensorDatas);
+                intent.putExtra("temperature", temperature);
                 dialog.dismiss();
                 //Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
                 //intent.putExtra("date",date);
@@ -286,7 +293,7 @@ public class DeviceActivity extends AppCompatActivity {
                 setMonth = monthOfYear;
                 setDay = dayOfMonth;
             }
-        }, currentDate.getYear(), currentDate.getMonth(), currentDate.getDay());
+        }, currentDate.getYear() + 1900, currentDate.getMonth(), currentDate.getDay());
         datePickerDialog.setCancelable(true);
         datePickerDialog.setButton(DatePickerDialog.BUTTON_POSITIVE, getString(R.string.download_next), new DialogInterface.OnClickListener() {
             @Override
@@ -310,7 +317,7 @@ public class DeviceActivity extends AppCompatActivity {
         if (bounded) {
             //sensorService.getDataFromSensor(address, port);
             DownloadSensorData downloadSensorData = new DownloadSensorData();
-            downloadSensorData.execute(new Pair<InetAddress, Integer>(address,port));
+            downloadSensorData.execute(new Pair<InetAddress, Integer>(address, port));
         }
     }
 
@@ -321,8 +328,7 @@ public class DeviceActivity extends AppCompatActivity {
         Log.d("SYNC", interval);
 
         if (bounded) {
-            if(sensorService.startTimerTask(address, port, Integer.valueOf(interval)))
-            {
+            if (sensorService.startTimerTask(address, port, Integer.valueOf(interval))) {
                 new AlertDialog.Builder(DeviceActivity.this)
                         .setTitle(getString(R.string.alert_ok))
                         .setMessage(getString(R.string.alert_threadStartedOK))
@@ -333,9 +339,7 @@ public class DeviceActivity extends AppCompatActivity {
                         })
                         .setIcon(android.R.drawable.ic_dialog_info)
                         .show();
-            }
-            else
-            {
+            } else {
                 new AlertDialog.Builder(DeviceActivity.this)
                         .setTitle(getString(R.string.alert_warning))
                         .setMessage(getString(R.string.alert_threadStartedError))
@@ -347,9 +351,7 @@ public class DeviceActivity extends AppCompatActivity {
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show();
             }
-        }
-        else
-        {
+        } else {
             new AlertDialog.Builder(DeviceActivity.this)
                     .setTitle(getString(R.string.alert_warning))
                     .setMessage(getString(R.string.string_notBounded))
@@ -366,8 +368,7 @@ public class DeviceActivity extends AppCompatActivity {
     public void stopPeriodicTask(View v) {
         if (bounded) {
 
-            if(sensorService.stopTimerTask(address))
-            {
+            if (sensorService.stopTimerTask(address)) {
                 new AlertDialog.Builder(DeviceActivity.this)
                         .setTitle(getString(R.string.alert_ok))
                         .setMessage(getString(R.string.alert_threadStoppedOK))
@@ -378,9 +379,7 @@ public class DeviceActivity extends AppCompatActivity {
                         })
                         .setIcon(android.R.drawable.ic_dialog_info)
                         .show();
-            }
-            else
-            {
+            } else {
                 new AlertDialog.Builder(DeviceActivity.this)
                         .setTitle(getString(R.string.alert_warning))
                         .setMessage(getString(R.string.alert_threadStoppedError))
@@ -392,9 +391,7 @@ public class DeviceActivity extends AppCompatActivity {
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show();
             }
-        }
-        else
-        {
+        } else {
             new AlertDialog.Builder(DeviceActivity.this)
                     .setTitle(getString(R.string.alert_warning))
                     .setMessage(getString(R.string.alert_notBounded))
@@ -413,6 +410,7 @@ public class DeviceActivity extends AppCompatActivity {
         protected DownloadData() {
 
         }
+
         @Override
         protected void onPreExecute() {
             dialog = ProgressDialog.show(DeviceActivity.this, getString(R.string.string_loading), getString(R.string.string_starting));
@@ -424,9 +422,7 @@ public class DeviceActivity extends AppCompatActivity {
             try {
 
                 return sensorService.getDeviceInfo(pairs[0].first, pairs[0].second);
-            }
-            catch (IOException ex)
-            {
+            } catch (IOException ex) {
 
                 return null;
             }
@@ -434,16 +430,14 @@ public class DeviceActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(DeviceInfo deviceInfo) {
-            if(deviceInfo!=null) {
+            if (deviceInfo != null) {
                 //String info = deviceInfo.getName() + ", " + deviceInfo.getId() + ", " + deviceInfo.getLocalization();
                 //toast.makeText(getApplicationContext(), info, Toast.LENGTH_LONG).show();
                 dialog.dismiss();
                 android.support.v4.app.FragmentManager fm = getSupportFragmentManager();
                 DeviceInfoDialog deviceInfoDialog = DeviceInfoDialog.createNewInstance(deviceInfo);
                 deviceInfoDialog.show(fm, "tag");
-            }
-            else
-            {
+            } else {
                 dialog.dismiss();
                 new AlertDialog.Builder(DeviceActivity.this)
                         .setTitle(getString(R.string.alert_title))
@@ -466,6 +460,7 @@ public class DeviceActivity extends AppCompatActivity {
         protected DownloadSensorData() {
 
         }
+
         @Override
         protected void onPreExecute() {
             alertDialog = new AlertDialog.Builder(DeviceActivity.this).create();
@@ -477,37 +472,33 @@ public class DeviceActivity extends AppCompatActivity {
         protected SensorData doInBackground(Pair<InetAddress, Integer>... pairs) {
             try {
                 return sensorService.getDataFromDevice(pairs[0].first, pairs[0].second);
-            } catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 return null;
             }
         }
 
         @Override
         protected void onPostExecute(SensorData sensorData) {
-            if(sensorData!=null) {
+            if (sensorData != null) {
                 dialog.dismiss();
                 android.support.v4.app.FragmentManager fm = getSupportFragmentManager();
                 SensorDialog sensorDialog = SensorDialog.createNewInstance(sensorData);
                 sensorDialog.show(fm, "tag");
-            }
-            else
-            {
+            } else {
                 dialog.dismiss();
 
-                        alertDialog.setTitle(getString(R.string.alert_title));
-                        alertDialog.setMessage(getString(R.string.string_downloadError));
-                        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
+                alertDialog.setTitle(getString(R.string.alert_title));
+                alertDialog.setMessage(getString(R.string.string_downloadError));
+                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
-                            }
-                        });
-                        alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
-                        alertDialog.show();
+                    }
+                });
+                alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+                alertDialog.show();
             }
         }
 
     }
-
 }

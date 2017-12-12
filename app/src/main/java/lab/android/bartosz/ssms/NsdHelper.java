@@ -46,7 +46,7 @@ public class NsdHelper {
         context = appContext;
         nsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        toast = prefs.getBoolean("show_toast",false);
+        toast = prefs.getBoolean("show_toast", false);
     }
 
     public void initializeNsd() {
@@ -63,8 +63,7 @@ public class NsdHelper {
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Called when the resolve fails.  Use the error code to debug.
                 Log.e(TAG, "Resolve failed " + errorCode + ", " + serviceInfo);
-                if(NsdManager.FAILURE_ALREADY_ACTIVE == errorCode)
-                {
+                if (NsdManager.FAILURE_ALREADY_ACTIVE == errorCode) {
                     nsdManager.resolveService(serviceInfo, sensorResolveListener);
                 }
 
@@ -91,9 +90,8 @@ public class NsdHelper {
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Called when the resolve fails.  Use the error code to debug.
                 Log.e(TAG, "Resolve failed " + errorCode + ", " + serviceInfo);
-                if(errorCode==NsdManager.FAILURE_ALREADY_ACTIVE)
-                {
-                    nsdManager.resolveService(serviceInfo,collectorResolveListener);
+                if (errorCode == NsdManager.FAILURE_ALREADY_ACTIVE) {
+                    nsdManager.resolveService(serviceInfo, collectorResolveListener);
                 }
 
             }
@@ -129,8 +127,7 @@ public class NsdHelper {
             public void onServiceFound(NsdServiceInfo service) {
                 // A service was found!  Do something with it.
                 Log.e(TAG, "Service discovery success " + service);
-                if ((service.getServiceType().equals(SERVICE_TYPE)))
-                {
+                if ((service.getServiceType().equals(SERVICE_TYPE))) {
                     nsdManager.resolveService(service, sensorResolveListener);
                     Log.e(TAG, "Found machine: " + SERVICE_NAME);
 
@@ -179,7 +176,7 @@ public class NsdHelper {
             public void onServiceFound(NsdServiceInfo service) {
                 // A service was found!  Do something with it.
                 Log.e(TAG, "Service discovery success " + service);
-                if(service.getServiceType().equals(COLLECTOR_SERVICE_TYPE)) {
+                if (service.getServiceType().equals(COLLECTOR_SERVICE_TYPE)) {
 
                     Log.e(TAG, "Found machine: " + SERVICE_NAME);
                     nsdManager.resolveService(service, collectorResolveListener);
@@ -221,7 +218,7 @@ public class NsdHelper {
 
     public void discoverServices() {
         nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, sensorDiscoveryListener);
-        nsdManager.discoverServices(COLLECTOR_SERVICE_TYPE,NsdManager.PROTOCOL_DNS_SD,collectorDiscoveryListener);
+        nsdManager.discoverServices(COLLECTOR_SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, collectorDiscoveryListener);
     }
 
     public void stopDiscovery() {
@@ -237,13 +234,17 @@ public class NsdHelper {
         return cmDNSList;
     }
 
-    public List<MDNSDevice> getAvailableDevices()
-    {
+    public List<MDNSDevice> getAvailableDevices() {
         devices.clear();
         devices.addAll(sensorDevices);
         devices.addAll(collectorDevices);
         return devices;
     }
 
-
+    public void clearLists()
+    {
+        devices.clear();
+        sensorDevices.clear();
+        collectorDevices.clear();
+    }
 }

@@ -4,10 +4,10 @@ import android.provider.BaseColumns;
 
 
 public class SensorDataContract {
-    public SensorDataContract() {}
+    public SensorDataContract() {
+    }
 
-    public static abstract class SensorDataCol implements BaseColumns
-    {
+    public static abstract class SensorDataCol implements BaseColumns {
         public static final String TABLE_NAME = "sensor";
         public static final String COLUMN_NAME_SENSOR_ID = "sensorId";
         public static final String COLUMN_NAME_DATE = "date";

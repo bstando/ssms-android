@@ -33,16 +33,10 @@ public class SensorDialog extends AppCompatDialogFragment {
         return dialog;
     }
 
-    /*
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.sensor_dialog_layout, container);
-    }
-    */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.sensor_dialog_layout,container);
+        View view = inflater.inflate(R.layout.sensor_dialog_layout, container);
         SensorDialog.this.getDialog().requestWindowFeature(Window.FEATURE_NO_TITLE);
         //return getActivity().getLayoutInflater().inflate(R.layout.sensor_dialog_layout, container);
         return view;
@@ -78,11 +72,12 @@ public class SensorDialog extends AppCompatDialogFragment {
 
 
     }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         // request a window without the title
-       // dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        // dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 

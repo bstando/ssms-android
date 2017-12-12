@@ -16,6 +16,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -111,109 +112,103 @@ public class CollectorActivity extends AppCompatActivity {
             }
         });
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        toast = prefs.getBoolean("show_toast",true);
+        toast = prefs.getBoolean("show_toast", true);
     }
 
     public void showDatabase() {
         Intent intent = new Intent(getApplicationContext(), SensorReadingsActivity.class);
-        intent.putExtra("sensorID",0);
+        intent.putExtra("sensorID", 0);
         startActivity(intent);
     }
 
     public void showChart(final boolean temperature) {
-
-
-
-            Date currentDate = new Date();
-            timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-                @Override
-                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                    setHours = hourOfDay;
-                    setMinutes = minute;
-
-
-                    timePickerDialog.dismiss();
+        Date currentDate = new Date();
+        timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                setHours = hourOfDay;
+                setMinutes = minute;
+                timePickerDialog.dismiss();
+            }
+        }, currentDate.getHours(), currentDate.getMinutes(), true);
+        timePickerDialog.setCancelable(true);
+        timePickerDialog.setButton(TimePickerDialog.BUTTON_POSITIVE, getString(R.string.download_ok), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                timePickerDialog.dismiss();
+                String date = new String();
+                setMonth += 1;
+                date += setYear;
+                if (setMonth < 10) {
+                    date += "/0" + setMonth;
+                } else {
+                    date += "/" + setMonth;
                 }
-            }, currentDate.getHours(), currentDate.getMinutes(), true);
-            timePickerDialog.setCancelable(true);
-            timePickerDialog.setButton(TimePickerDialog.BUTTON_POSITIVE, getString(R.string.download_ok), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    timePickerDialog.dismiss();
-                    String date = new String();
-                    setMonth += 1;
-                    date += setYear;
-                    if (setMonth < 10) {
-                        date += "/0" + setMonth;
-                    } else {
-                        date += "/" + setMonth;
-                    }
-                    if (setDay < 10) {
-                        date += "/0" + setDay;
-                    } else {
-                        date += "/" + setDay;
-                    }
-                    if (setHours < 10) {
-                        date += " 0" + setHours;
-                    } else {
-                        date += " " + setHours;
-                    }
-                    if (setMinutes < 10) {
-                        date += ":0" + setMinutes + ":00";
-                    } else {
-                        date += ":" + setMinutes + ":00";
-                    }
-
-                    //Toast.makeText(getApplicationContext(),date,Toast.LENGTH_LONG).show();
-                    dialog = ProgressDialog.show(CollectorActivity.this, getString(R.string.string_loading), getString(R.string.string_starting));
-                    ArrayList<SensorData> sensorDatas = (ArrayList<SensorData>) sensorService.getDataSinceFromDatabase(date);
-                    Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
-                    intent.putExtra("list",sensorDatas);
-                    intent.putExtra("temperature",temperature);
-                    dialog.dismiss();
-                    startActivity(intent);
-
+                if (setDay < 10) {
+                    date += "/0" + setDay;
+                } else {
+                    date += "/" + setDay;
                 }
-            });
-            timePickerDialog.setButton(TimePickerDialog.BUTTON_NEGATIVE, getString(R.string.download_cancel), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    timePickerDialog.dismiss();
+                if (setHours < 10) {
+                    date += " 0" + setHours;
+                } else {
+                    date += " " + setHours;
                 }
-            });
+                if (setMinutes < 10) {
+                    date += ":0" + setMinutes + ":00";
+                } else {
+                    date += ":" + setMinutes + ":00";
+                }
+
+                //Toast.makeText(getApplicationContext(),date,Toast.LENGTH_LONG).show();
+                dialog = ProgressDialog.show(CollectorActivity.this, getString(R.string.string_loading), getString(R.string.string_starting));
+                ArrayList<SensorData> sensorDatas = (ArrayList<SensorData>) sensorService.getDataSinceFromDatabase(date);
+                Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
+                intent.putExtra("list", sensorDatas);
+                intent.putExtra("temperature", temperature);
+                dialog.dismiss();
+                startActivity(intent);
+
+            }
+        });
+        timePickerDialog.setButton(TimePickerDialog.BUTTON_NEGATIVE, getString(R.string.download_cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                timePickerDialog.dismiss();
+            }
+        });
 
 
-            datePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
-                @Override
-                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                    setYear = year;
-                    setMonth = monthOfYear;
-                    setDay = dayOfMonth;
-                }
-            }, currentDate.getYear(), currentDate.getMonth(), currentDate.getDay());
-            datePickerDialog.setCancelable(true);
-            datePickerDialog.setButton(DatePickerDialog.BUTTON_POSITIVE, getString(R.string.download_next), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    timePickerDialog.show();
-                    datePickerDialog.dismiss();
-                }
-            });
-            datePickerDialog.setButton(DatePickerDialog.BUTTON_NEGATIVE, getString(R.string.download_cancel), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    datePickerDialog.dismiss();
-                }
-            });
+        datePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                setYear = year;
+                setMonth = monthOfYear;
+                setDay = dayOfMonth;
+            }
+        }, currentDate.getYear() + 1900, currentDate.getMonth(), currentDate.getDay());
+        datePickerDialog.setCancelable(true);
+        datePickerDialog.setButton(DatePickerDialog.BUTTON_POSITIVE, getString(R.string.download_next), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                timePickerDialog.show();
+                datePickerDialog.dismiss();
+            }
+        });
+        datePickerDialog.setButton(DatePickerDialog.BUTTON_NEGATIVE, getString(R.string.download_cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                datePickerDialog.dismiss();
+            }
+        });
 
 
-            datePickerDialog.show();
+        datePickerDialog.show();
 
 
     }
 
-    void showWarning()
-    {
+    void showWarning() {
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.alert_title))
                 .setMessage(getString(R.string.string_deleteAll))
@@ -224,15 +219,15 @@ public class CollectorActivity extends AppCompatActivity {
                 })
                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                       //Nothing
+                        //Nothing
                     }
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }
-    void showNoRowsWarning(final boolean temp)
-    {
-        if(sensorService.getDatabaseRowsCount()==0) {
+
+    void showNoRowsWarning(final boolean temp) {
+        if (sensorService.getDatabaseRowsCount() == 0) {
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.alert_title))
                     .setMessage(getString(R.string.string_lowDatabaseCount))
@@ -248,8 +243,7 @@ public class CollectorActivity extends AppCompatActivity {
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
-        } else
-        {
+        } else {
             showChart(temp);
         }
     }
@@ -281,7 +275,7 @@ public class CollectorActivity extends AppCompatActivity {
                 DownloadLimitedData worker = new DownloadLimitedData();
 
                 worker.execute(new Pair<Pair<InetAddress, Integer>, Integer>(new Pair<InetAddress, Integer>(address, port), downloadDataCount));
-                downloadDataCount=1;
+                downloadDataCount = 1;
             }
         });
         builder.setCancelable(true);
@@ -356,7 +350,7 @@ public class CollectorActivity extends AppCompatActivity {
                 setMonth = monthOfYear;
                 setDay = dayOfMonth;
             }
-        }, currentDate.getYear(), currentDate.getMonth(), currentDate.getDay());
+        }, currentDate.getYear() + 1900, currentDate.getMonth(), currentDate.getDay());
         datePickerDialog.setCancelable(true);
         datePickerDialog.setButton(DatePickerDialog.BUTTON_POSITIVE, getString(R.string.download_next), new DialogInterface.OnClickListener() {
             @Override
@@ -415,6 +409,16 @@ public class CollectorActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        if (bounded) {
+            unbindService(connection);
+            bounded = false;
+        }
+        super.onDestroy();
+    }
+
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -454,8 +458,7 @@ public class CollectorActivity extends AppCompatActivity {
                     count++;
                 }
                 return dataList;
-            } catch (IOException ex)
-            {
+            } catch (IOException ex) {
 
                 return null;
             }
@@ -464,7 +467,7 @@ public class CollectorActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<SensorData> sensorDataList) {
 
-            if(sensorDataList!=null) {
+            if (sensorDataList != null) {
                 dialog.dismiss();
 
                 if (toast)
@@ -481,8 +484,7 @@ public class CollectorActivity extends AppCompatActivity {
                         .setIcon(android.R.drawable.ic_dialog_info)
                         .show();
 
-            } else
-            {
+            } else {
                 dialog.dismiss();
                 new AlertDialog.Builder(CollectorActivity.this)
                         .setTitle(getString(R.string.alert_title))
@@ -503,7 +505,7 @@ public class CollectorActivity extends AppCompatActivity {
             if (values[0] == 0) {
                 dialog.setMessage(getString(R.string.string_download) + values[1] + getString(R.string.string_adding));
             } else {
-                dialog.setMessage(getString(R.string.string_inserted) + values[2] + getString(R.string.string_of) + values[1]);
+                dialog.setMessage(getString(R.string.string_inserted) + " " + values[2] + " " + getString(R.string.string_of) + " " + values[1]);
             }
         }
 
@@ -525,8 +527,7 @@ public class CollectorActivity extends AppCompatActivity {
                 List<SensorData> dataList = sensorService.getLimitDataFromCollector(params[0].first.first, params[0].first.second, params[0].second);
 
                 return dataList;
-            } catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 dialog.dismiss();
                 new AlertDialog.Builder(getApplicationContext())
                         .setTitle(getString(R.string.alert_title))
@@ -545,7 +546,7 @@ public class CollectorActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<SensorData> sensorDataList) {
 
-            if(sensorDataList!=null) {
+            if (sensorDataList != null) {
                 dialog.dismiss();
 
                 Intent intent = new Intent(getApplicationContext(), SensorReadingsActivity.class);
@@ -579,8 +580,7 @@ public class CollectorActivity extends AppCompatActivity {
         protected List<SensorData> doInBackground(Pair<Pair<InetAddress, Integer>, String>... params) {
             try {
                 return sensorService.getDataSinceFromCollector(params[0].first.first, params[0].first.second, params[0].second);
-            } catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 dialog.dismiss();
                 new AlertDialog.Builder(getApplicationContext())
                         .setTitle(getString(R.string.alert_title))
@@ -599,7 +599,7 @@ public class CollectorActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<SensorData> sensorDataList) {
 
-            if(sensorDataList!=null) {
+            if (sensorDataList != null) {
                 dialog.dismiss();
 
                 Intent intent = new Intent(getApplicationContext(), SensorReadingsActivity.class);

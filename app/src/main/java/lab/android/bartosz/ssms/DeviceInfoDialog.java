@@ -13,16 +13,14 @@ import android.widget.TextView;
 public class DeviceInfoDialog extends AppCompatDialogFragment {
     DeviceInfo deviceInfo;
 
-    public DeviceInfoDialog()
-    {
+    public DeviceInfoDialog() {
 
     }
 
-    public static DeviceInfoDialog createNewInstance(DeviceInfo di)
-    {
+    public static DeviceInfoDialog createNewInstance(DeviceInfo di) {
         DeviceInfoDialog deviceInfoDialog = new DeviceInfoDialog();
         Bundle args = new Bundle();
-        args.putSerializable("data",di);
+        args.putSerializable("data", di);
         deviceInfoDialog.setArguments(args);
         return deviceInfoDialog;
     }
@@ -50,6 +48,7 @@ public class DeviceInfoDialog extends AppCompatDialogFragment {
         deviceInfoLocTV.setText(loc);
 
     }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
@@ -63,5 +62,4 @@ public class DeviceInfoDialog extends AppCompatDialogFragment {
         super.onCreate(savedInstanceState);
         setStyle(STYLE_NO_FRAME, R.style.AppDialogTheme);
     }
-
 }

@@ -38,7 +38,7 @@ public class SensorReadingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e("START","ACTIVITY_STARTED");
+        Log.e("START", "ACTIVITY_STARTED");
         setContentView(R.layout.activity_sensor_readings);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.sensorReadingsMenu);
@@ -46,8 +46,7 @@ public class SensorReadingsActivity extends AppCompatActivity {
 
 
         SensorReadingDetailFragment sensorReadingDetailFragment = (SensorReadingDetailFragment) getFragmentManager().findFragmentById(R.id.sensorReadingDetailFragment);
-        if(sensorReadingDetailFragment!=null && sensorReadingDetailFragment.isInLayout())
-        {
+        if (sensorReadingDetailFragment != null && sensorReadingDetailFragment.isInLayout()) {
             isSensorReadingDetailFragmentInLayout = true;
         }
 
@@ -75,12 +74,10 @@ public class SensorReadingsActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart()
-    {
+    protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this,SensorService.class);
-        bindService(intent,connection, Context.BIND_AUTO_CREATE);
-
+        Intent intent = new Intent(this, SensorService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
 
     }
@@ -93,36 +90,41 @@ public class SensorReadingsActivity extends AppCompatActivity {
             bounded = false;
         }
     }
-    void generate()
+
+    @Override
+    protected void onDestroy()
     {
+        if (bounded) {
+            unbindService(connection);
+            bounded = false;
+        }
+        super.onDestroy();
+    }
+
+    void generate() {
         Bundle extrasBundle = getIntent().getExtras();
-        if(extrasBundle!=null) {
+        if (extrasBundle != null) {
 
             sensorID = extrasBundle.getInt("sensorID");
 
-            if(sensorID==-1)
-            {
+            if (sensorID == -1) {
                 sensorDataArrayList = (ArrayList<SensorData>) extrasBundle.getSerializable("list");
 
-            } else if (sensorID==0)
-            {
+            } else if (sensorID == 0) {
                 sensorDataArrayList = (ArrayList<SensorData>) sensorService.getFromDatabase();
-            }
-            else
-            {
+            } else {
                 sensorDataArrayList = (ArrayList<SensorData>) sensorService.getBySensorID(sensorID);
             }
 
+        } else {
+            Log.e("ERRROR", "NULL_BUNDLE");
         }
-        else {
-            Log.e("ERRROR","NULL_BUNDLE");
-        }
-        Log.e("SENSOR_ID",""+sensorID);
-        Log.e("SIZE::::",""+sensorDataArrayList.size());
+        Log.e("SENSOR_ID", "" + sensorID);
+        Log.e("SIZE::::", "" + sensorDataArrayList.size());
 
         listView = (ListView) findViewById(R.id.readingsListView);
         listView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
-        ArrayAdapter<SensorData> arrayAdapter = new ArrayAdapter<SensorData>(this,android.R.layout.simple_list_item_1,sensorDataArrayList);
+        ArrayAdapter<SensorData> arrayAdapter = new ArrayAdapter<SensorData>(this, android.R.layout.simple_list_item_1, sensorDataArrayList);
         listView.setAdapter(arrayAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -133,36 +135,32 @@ public class SensorReadingsActivity extends AppCompatActivity {
                 SensorData sensorData = (SensorData) object;
                 android.support.v4.app.FragmentManager fm = getSupportFragmentManager();
                 SensorDialog sensorDialog = SensorDialog.createNewInstance(sensorData);
-                sensorDialog.show(fm,"tag");
+                sensorDialog.show(fm, "tag");
             }
         });
 
     }
 
-    void update()
-    {
+    void update() {
         List<SensorData> datas;
-        if(sensorID!=-1)
-        {
+        if (sensorID != -1) {
             //datas =  sensorService.getBySensorID(sensorID);
             datas = sensorService.getFromDatabase();
-        } else
-        {
+        } else {
             datas = sensorService.getFromDatabase();
         }
-        ArrayAdapter<SensorData> arrayAdapter = new ArrayAdapter<SensorData>(this,android.R.layout.simple_list_item_1,datas);
+        ArrayAdapter<SensorData> arrayAdapter = new ArrayAdapter<SensorData>(this, android.R.layout.simple_list_item_1, datas);
         listView.setAdapter(arrayAdapter);
         arrayAdapter.notifyDataSetChanged();
 
     }
 
-    void makeInterface(final SensorData sensorData)
-    {
+    void makeInterface(final SensorData sensorData) {
         final TextView sensorDataId = (TextView) findViewById(R.id.readingIDTextView);
         final TextView sensorDataDate = (TextView) findViewById(R.id.readingDateTextView);
         final EditText sensorDataDeviceId = (EditText) findViewById(R.id.readingDeviceIDEditText);
-        final EditText sensorDataTemperature =  (EditText) findViewById(R.id.readingTemperatureEditText);
-        final EditText sensorDataHumidity =  (EditText) findViewById(R.id.readingHumidityEditText);
+        final EditText sensorDataTemperature = (EditText) findViewById(R.id.readingTemperatureEditText);
+        final EditText sensorDataHumidity = (EditText) findViewById(R.id.readingHumidityEditText);
         Button updateButton = (Button) findViewById(R.id.updateDataBtn);
         Button removeButton = (Button) findViewById(R.id.removeDataBtn);
         sensorDataId.setText(String.valueOf(sensorData.getId()));
@@ -194,7 +192,6 @@ public class SensorReadingsActivity extends AppCompatActivity {
     }
 
 
-
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -212,6 +209,5 @@ public class SensorReadingsActivity extends AppCompatActivity {
             bounded = false;
         }
     };
-
 
 }

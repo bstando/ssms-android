@@ -16,7 +16,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,23 +31,18 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     public static final String ACTION_CLIENTS_CHANGED = "lab.android.bartosz.ssms.CLIENT_CHANGED";
     protected SensorService sensorService;
     protected boolean bounded = false;
     ListView listView;
-    private NSDReciever nsdReciever;
+    private NSDReceiver nsdReceiver;
 
     private List<MDNSDevice> devicesInfo = new ArrayList<>();
     ArrayAdapter<MDNSDevice> adapter;
     boolean toast;
-    boolean searching=false;
-
-    //SensorDataDbHelper sensorDataDbHelper;
-    //NsdHelper nsdHelper;
+    boolean searching = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +51,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitleTextColor(0xffffffff);
         setSupportActionBar(toolbar);
-
-        //sensorDataDbHelper = new SensorDataDbHelper(getApplicationContext());
-        //nsdHelper = new NsdHelper(getApplicationContext());
-        //nsdHelper.initializeNsd();
 
         listView = (ListView) findViewById(R.id.sensorListView);
         adapter = new SensorListAdapter(this, devicesInfo);
@@ -75,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 MDNSDevice deviceInfo = (MDNSDevice) object;
                 if (deviceInfo.getIsSensor()) {
                     StartSensorActivity startSensorActivity = new StartSensorActivity();
-                    startSensorActivity.execute(new Pair<InetAddress, Integer>(deviceInfo.getAddress(),deviceInfo.getPort()));
+                    startSensorActivity.execute(new Pair<InetAddress, Integer>(deviceInfo.getAddress(), deviceInfo.getPort()));
 
                 } else {
                     Intent intent = new Intent(getApplicationContext(), CollectorActivity.class);
@@ -86,15 +76,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        toast = prefs.getBoolean("show_toast",true);
+        toast = prefs.getBoolean("show_toast", true);
 
         initReceiver();
     }
 
     private void initReceiver() {
-        nsdReciever = new NSDReciever();
+        nsdReceiver = new NSDReceiver();
         IntentFilter filter = new IntentFilter(ACTION_CLIENTS_CHANGED);
-        registerReceiver(nsdReciever, filter);
+        registerReceiver(nsdReceiver, filter);
     }
 
     @Override
@@ -108,18 +98,23 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         if (bounded) {
+            sensorService.stopSearching();
             unbindService(connection);
             bounded = false;
         }
-
-
         super.onStop();
     }
 
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(nsdReciever);
+        if (bounded) {
+            sensorService.stopSearching();
+            unbindService(connection);
+            bounded = false;
+        }
+
+        unregisterReceiver(nsdReceiver);
         Intent intent = new Intent(this, SensorService.class);
         stopService(intent);
         super.onDestroy();
@@ -131,13 +126,10 @@ public class MainActivity extends AppCompatActivity {
             SensorService.LocalBinder binder = (SensorService.LocalBinder) service;
             sensorService = binder.getService();
             bounded = true;
-            //sensorService.setHelpers(nsdHelper, sensorDataDbHelper);
-
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            //sensorService.stopSearching();
             bounded = false;
         }
     };
@@ -176,9 +168,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void showNoWifiWarning()
-    {
-        if(!sensorService.isConnectedViaWiFi()) {
+    void showNoWifiWarning() {
+        if (!sensorService.isConnectedViaWiFi()) {
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.alert_title))
                     .setMessage(getString(R.string.string_noWifi))
@@ -189,8 +180,7 @@ public class MainActivity extends AppCompatActivity {
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
-        } else
-        {
+        } else {
             startSearching();
         }
     }
@@ -198,87 +188,78 @@ public class MainActivity extends AppCompatActivity {
     public void startSearching() {
         if (bounded) {
             sensorService.startSearching();
-            searching=true;
-            if(toast)
-            Toast.makeText(getApplicationContext(), getString(R.string.string_searchStarted), Toast.LENGTH_LONG).show();
+            searching = true;
+            if (toast)
+                Toast.makeText(getApplicationContext(), getString(R.string.string_searchStarted), Toast.LENGTH_LONG).show();
 
         } else {
-            if(toast)
-            Toast.makeText(getApplicationContext(), getString(R.string.string_notBounded), Toast.LENGTH_LONG).show();
+            if (toast)
+                Toast.makeText(getApplicationContext(), getString(R.string.string_notBounded), Toast.LENGTH_LONG).show();
         }
     }
 
 
     public void stopSearching() {
         if (bounded) {
-            if(searching) {
+            if (searching) {
                 sensorService.stopSearching();
                 if (toast)
                     Toast.makeText(getApplicationContext(), getString(R.string.string_searchStopped), Toast.LENGTH_LONG).show();
             }
 
         } else {
-            if(toast)
-            Toast.makeText(getApplicationContext(), getString(R.string.string_notBounded), Toast.LENGTH_LONG).show();
+            if (toast)
+                Toast.makeText(getApplicationContext(), getString(R.string.string_notBounded), Toast.LENGTH_LONG).show();
         }
     }
 
     public void refreshList() {
         if (bounded) {
-            if(searching) {
-                //Map map = sensorService.getClients();
+            if (searching) {
                 devicesInfo.clear();
                 adapter.clear();
                 adapter.notifyDataSetChanged();
-                //DownloadDeviceInfo deviceInfo = new DownloadDeviceInfo();
-                //deviceInfo.execute(map);
 
                 devicesInfo.addAll(sensorService.getDevices());
                 if (toast)
                     Toast.makeText(getApplicationContext(), getString(R.string.string_added) + devicesInfo.size(), Toast.LENGTH_SHORT).show();
 
-                //adapter.addAll(devicesInfo);
                 adapter.notifyDataSetChanged();
             }
         } else {
-            if(toast)
-            Toast.makeText(getApplicationContext(), getString(R.string.string_notBounded), Toast.LENGTH_LONG).show();
+            if (toast)
+                Toast.makeText(getApplicationContext(), getString(R.string.string_notBounded), Toast.LENGTH_LONG).show();
         }
 
     }
 
-    private class StartSensorActivity extends AsyncTask<Pair<InetAddress,Integer>,Void,DeviceInfo>
-    {
+    private class StartSensorActivity extends AsyncTask<Pair<InetAddress, Integer>, Void, DeviceInfo> {
         ProgressDialog progressDialog;
+
         @Override
-        protected void onPreExecute()
-        {
-            progressDialog = ProgressDialog.show(MainActivity.this,getString(R.string.main_conn),getString(R.string.main_connWait));
+        protected void onPreExecute() {
+            progressDialog = ProgressDialog.show(MainActivity.this, getString(R.string.main_conn), getString(R.string.main_connWait));
         }
 
         @Override
         protected DeviceInfo doInBackground(Pair<InetAddress, Integer>... params) {
             try {
                 return sensorService.getDeviceInfo(params[0].first, params[0].second);
-            } catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 return null;
             }
         }
 
         @Override
-        protected void onPostExecute(DeviceInfo data)
-        {
+        protected void onPostExecute(DeviceInfo data) {
             progressDialog.dismiss();
-            if(data!=null) {
+            if (data != null) {
                 Intent intent = new Intent(MainActivity.this, DeviceActivity.class);
                 intent.putExtra("address", data.getAddress().getAddress());
                 intent.putExtra("port", data.getPort());
                 intent.putExtra("deviceID", data.getId());
                 startActivity(intent);
-            }
-            else
-            {
+            } else {
                 new AlertDialog.Builder(MainActivity.this)
                         .setTitle(getString(R.string.alert_title))
                         .setMessage(getString(R.string.string_downloadError))
@@ -293,46 +274,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class DownloadDeviceInfo extends AsyncTask<Map<InetAddress, Integer>, Void, Void> {
-        protected DownloadDeviceInfo() {
-
-        }
-
-        @Override
-        protected Void doInBackground(Map<InetAddress, Integer>... pairs) {
-            Map<InetAddress, Integer> map = pairs[0];
-            Set<InetAddress> set = map.keySet();
-            for (InetAddress inetAddress : set) {
-                InetAddress address = inetAddress;
-                Integer port = map.get(inetAddress);
-                try {
-                    DeviceInfo deviceInfo = sensorService.getDeviceInfo(address, port);
-
-                    if (!devicesInfo.contains(deviceInfo)) {
-                        //devicesInfo.add(deviceInfo);
-                        //adapter.add(deviceInfo);
-                    }
-                }
-                catch (IOException ex)
-                {
-
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void data) {
-
-            adapter.notifyDataSetChanged();
-            if(toast)
-            Toast.makeText(getApplicationContext(), getString(R.string.string_found) + devicesInfo.size(), Toast.LENGTH_LONG).show();
-        }
-
-    }
-
-    public class NSDReciever extends BroadcastReceiver {
-        public NSDReciever() {
+    public class NSDReceiver extends BroadcastReceiver {
+        public NSDReceiver() {
         }
 
         @Override

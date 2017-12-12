@@ -28,70 +28,67 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
     private static final String COMMA_SEP = ",";
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE " + SensorDataContract.SensorDataCol.TABLE_NAME + " ("
-                    + SensorDataContract.SensorDataCol._ID + INT_TYPE +" PRIMARY KEY,"
+                    + SensorDataContract.SensorDataCol._ID + INT_TYPE + " PRIMARY KEY,"
                     + SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID + INT_TYPE + COMMA_SEP
                     + SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + TEXT_TYPE + COMMA_SEP
                     + SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE + FLOAT_TYPE + COMMA_SEP
-                    + SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY  + FLOAT_TYPE
+                    + SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY + FLOAT_TYPE
                     + " )";
 
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + SensorDataContract.SensorDataCol.TABLE_NAME;
 
 
-    public SensorDataDbHelper(Context context)
-    {
-        super(context,DATABASE_NAME,null,DATABASE_VERSION);
+    public SensorDataDbHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_ENTRIES);
     }
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
         db.execSQL(SQL_DELETE_ENTRIES);
         onCreate(db);
     }
+
     @Override
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public void insertData(SensorData data)
-    {
+    public void insertData(SensorData data) {
 
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID,data.getSensorId());
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_DATE,dateFormat.format(data.getDate()));
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE,data.getTemperature());
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY,data.getHumidity());
-        db.insert(SensorDataContract.SensorDataCol.TABLE_NAME, null,values);
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID, data.getSensorId());
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_DATE, dateFormat.format(data.getDate()));
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE, data.getTemperature());
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY, data.getHumidity());
+        db.insert(SensorDataContract.SensorDataCol.TABLE_NAME, null, values);
     }
 
-    public void deleteData(long id)
-    {
+    public void deleteData(long id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        String[] args = {""+id};
-        db.delete(SensorDataContract.SensorDataCol.TABLE_NAME, SensorDataContract.SensorDataCol._ID+"=?",args);
+        String[] args = {"" + id};
+        db.delete(SensorDataContract.SensorDataCol.TABLE_NAME, SensorDataContract.SensorDataCol._ID + "=?", args);
     }
 
-    public void updateData(SensorData data)
-    {
+    public void updateData(SensorData data) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID,data.getSensorId());
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_DATE,dateFormat.format(data.getDate()));
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE,data.getTemperature());
-        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY,data.getHumidity());
-        String[] args = {""+ data.getId()};
-        db.update(SensorDataContract.SensorDataCol.TABLE_NAME,values, SensorDataContract.SensorDataCol._ID+"=?",args);
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID, data.getSensorId());
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_DATE, dateFormat.format(data.getDate()));
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_TEMPERATURE, data.getTemperature());
+        values.put(SensorDataContract.SensorDataCol.COLUMN_NAME_HUMIDITY, data.getHumidity());
+        String[] args = {"" + data.getId()};
+        db.update(SensorDataContract.SensorDataCol.TABLE_NAME, values, SensorDataContract.SensorDataCol._ID + "=?", args);
     }
 
-    public List<SensorData> retrieveAllData()
-    {
+    public List<SensorData> retrieveAllData() {
 
         List<SensorData> sensorDataList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -106,17 +103,15 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
         String sortOrder =
                 SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + " DESC";
 
-        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME,projection,null,null,null,null,sortOrder);
+        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME, projection, null, null, null, null, sortOrder);
 
-        while (cursor.moveToNext())
-        {
+        while (cursor.moveToNext()) {
             SensorData sensorData = new SensorData();
             sensorData.setId(cursor.getLong(0));
             sensorData.setSensorId(cursor.getLong(1));
             try {
                 sensorData.setDate(dateFormat.parse(cursor.getString(2)));
-            } catch (ParseException ex)
-            {
+            } catch (ParseException ex) {
                 sensorData.setDate(null);
             }
             sensorData.setHumidity(cursor.getFloat(4));
@@ -167,8 +162,7 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
 
     }
 
-    public SensorData getByID(long id)
-    {
+    public SensorData getByID(long id) {
 
         SensorData sensorData = new SensorData();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -182,10 +176,10 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
 
         String sortOrder =
                 SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + " DESC";
-        String where = SensorDataContract.SensorDataCol._ID+"=?";
-        String[] whereArgs= {""+id};
+        String where = SensorDataContract.SensorDataCol._ID + "=?";
+        String[] whereArgs = {"" + id};
 
-        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME,projection,where,whereArgs,null,null,sortOrder);
+        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME, projection, where, whereArgs, null, null, sortOrder);
         if (cursor != null) {
             cursor.moveToFirst();
 
@@ -206,8 +200,7 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
 
     }
 
-    public List<SensorData> getByDate(String date)
-    {
+    public List<SensorData> getByDate(String date) {
 
         List<SensorData> sensorDataList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -222,22 +215,20 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
         String sortOrder =
                 SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + " ASC";
 
-        String where = SensorDataContract.SensorDataCol.COLUMN_NAME_DATE+" >= ?";
-        String[] whereArgs= {date};
-        Log.e("DATE",date);
+        String where = SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + " >= ?";
+        String[] whereArgs = {date};
+        Log.e("DATE", date);
 
-        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME,projection,where,whereArgs,null,null,sortOrder);
+        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME, projection, where, whereArgs, null, null, sortOrder);
 
 
-        while (cursor.moveToNext())
-        {
+        while (cursor.moveToNext()) {
             SensorData sensorData = new SensorData();
             sensorData.setId(cursor.getLong(0));
             sensorData.setSensorId(cursor.getLong(1));
             try {
                 sensorData.setDate(dateFormat.parse(cursor.getString(2)));
-            } catch (ParseException ex)
-            {
+            } catch (ParseException ex) {
                 sensorData.setDate(null);
             }
             sensorData.setHumidity(cursor.getFloat(4));
@@ -250,8 +241,7 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
 
     }
 
-    public List<SensorData> getByDeviceID(int deviceID)
-    {
+    public List<SensorData> getByDeviceID(int deviceID) {
 
         List<SensorData> sensorDataList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -266,20 +256,18 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
         String sortOrder =
                 SensorDataContract.SensorDataCol.COLUMN_NAME_DATE + " DESC";
 
-        String where = SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID+"=?";
-        String[] whereArgs= {""+deviceID};
+        String where = SensorDataContract.SensorDataCol.COLUMN_NAME_SENSOR_ID + "=?";
+        String[] whereArgs = {"" + deviceID};
 
-        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME,projection,where,whereArgs,null,null,sortOrder);
+        Cursor cursor = db.query(SensorDataContract.SensorDataCol.TABLE_NAME, projection, where, whereArgs, null, null, sortOrder);
 
-        while (cursor.moveToNext())
-        {
+        while (cursor.moveToNext()) {
             SensorData sensorData = new SensorData();
             sensorData.setId(cursor.getLong(0));
             sensorData.setSensorId(cursor.getLong(1));
             try {
                 sensorData.setDate(dateFormat.parse(cursor.getString(2)));
-            } catch (ParseException ex)
-            {
+            } catch (ParseException ex) {
                 sensorData.setDate(null);
             }
             sensorData.setHumidity(cursor.getFloat(4));
@@ -292,16 +280,14 @@ public class SensorDataDbHelper extends SQLiteOpenHelper {
 
     }
 
-    public long countRows()
-    {
+    public long countRows() {
         SQLiteDatabase db = this.getReadableDatabase();
-        return DatabaseUtils.queryNumEntries(db,SensorDataContract.SensorDataCol.TABLE_NAME);
+        return DatabaseUtils.queryNumEntries(db, SensorDataContract.SensorDataCol.TABLE_NAME);
     }
 
 
-    public void reset()
-    {
-        onUpgrade(this.getWritableDatabase(),1,1);
+    public void reset() {
+        onUpgrade(this.getWritableDatabase(), 1, 1);
     }
 
 }

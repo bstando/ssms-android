@@ -27,12 +27,10 @@ public class SensorReadingDetailActivity extends AppCompatActivity {
     private long id;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
-        {
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             finish();
             return;
         }
@@ -40,18 +38,17 @@ public class SensorReadingDetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.sensorReadingDetailMenu);
         setSupportActionBar(toolbar);
         Bundle extrasBundle = getIntent().getExtras();
-        if(extrasBundle!=null) {
+        if (extrasBundle != null) {
 
             id = extrasBundle.getLong("id");
         }
 
     }
 
-    protected void onStart()
-    {
+    protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this,SensorService.class);
-        bindService(intent,connection, Context.BIND_AUTO_CREATE);
+        Intent intent = new Intent(this, SensorService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
     }
 
@@ -63,22 +60,29 @@ public class SensorReadingDetailActivity extends AppCompatActivity {
             bounded = false;
         }
     }
-    void generate()
+
+    @Override
+    protected void onDestroy()
     {
+        if (bounded) {
+            unbindService(connection);
+            bounded = false;
+        }
+        super.onDestroy();
+    }
+
+    void generate() {
         SensorData sensorData = sensorService.getByID(id);
         makeInterface(sensorData);
-
     }
 
 
-
-    void makeInterface(final SensorData sensorData)
-    {
+    void makeInterface(final SensorData sensorData) {
         final TextView sensorDataId = (TextView) findViewById(R.id.readingIDTextView);
         final TextView sensorDataDate = (TextView) findViewById(R.id.readingDateTextView);
         final EditText sensorDataDeviceId = (EditText) findViewById(R.id.readingDeviceIDEditText);
-        final EditText sensorDataTemperature =  (EditText) findViewById(R.id.readingTemperatureEditText);
-        final EditText sensorDataHumidity =  (EditText) findViewById(R.id.readingHumidityEditText);
+        final EditText sensorDataTemperature = (EditText) findViewById(R.id.readingTemperatureEditText);
+        final EditText sensorDataHumidity = (EditText) findViewById(R.id.readingHumidityEditText);
         Button updateButton = (Button) findViewById(R.id.updateDataBtn);
         Button removeButton = (Button) findViewById(R.id.removeDataBtn);
         sensorDataId.setText(String.valueOf(sensorData.getId()));
@@ -108,7 +112,6 @@ public class SensorReadingDetailActivity extends AppCompatActivity {
     }
 
 
-
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -116,17 +119,12 @@ public class SensorReadingDetailActivity extends AppCompatActivity {
             sensorService = binder.getService();
             bounded = true;
             generate();
-            //sensorService.setHelpers(nsdHelper, sensorDataDbHelper);
-
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            //sensorService.stopSearching();
             bounded = false;
         }
     };
-
-
 
 }

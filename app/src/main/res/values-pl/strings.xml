@@ -37,7 +37,7 @@
     </string-array>
 
 
-    <string name="pref_title_system_sync_settings">Systemowe ustwaienia synchornizacji</string>
+    <string name="pref_title_system_sync_settings">Systemowe ustawienia synchronizacji</string>
 
     <!-- Example settings for Notifications -->
     <string name="pref_header_notifications">Powiadomienia</string>
@@ -47,11 +47,11 @@
     <string name="start_search">Rozpocznij wyszukiwanie</string>
     <string name="stop_search">Zatrzymaj wyszukiwanie</string>
     <string name="refresh">Odśwież</string>
-    <string name="title_activity_device">DeviceActivity</string>
+    <string name="title_activity_device">Aktywność urządzenia</string>
     <string name="action_settings">Ustawienia</string>
     <string name="appwidget_text">PRZYKŁAD</string>
     <string name="add_widget">Dodaj Widżet</string>
-    <string name="show_device_info">WYŚWIETL INFOMRACJE O URZĄDZENIU</string>
+    <string name="show_device_info">WYŚWIETL INFORMACJE O URZĄDZENIU</string>
     <string name="show_current_readings">POKAŻ AKTUALNE ODCZYTY</string>
     <string name="start_periodic_task">ROZPOCZNIJ OKRESOWE ZBIERANIE DANYCH</string>
     <string name="stop_periodic_task">ZATRZYMAJ OKRESOWE ZBIERANIE DANYCH</string>
@@ -72,7 +72,7 @@
     <string name="data_humidity">Wilgotność:</string>
     <string name="data_temperature">Temperatura:</string>
     <string name="notif_new_data">Pojawiły się nowe dane w bazie</string>
-    <string name="collector_all_data">POBIERZ WSZYSZTKIE WPISY</string>
+    <string name="collector_all_data">POBIERZ WSZYSTKIE WPISY</string>
     <string name="collector_get_count">WYŚWIETL OSTATNIE WPISY</string>
     <string name="collector_get_since">WYŚWIETL WPISY OD ...</string>
     <string name="number_picker_title">Wybierz jak dużo wpisów pobrać</string>
@@ -98,7 +98,7 @@
     <string name="stringAnimateX">Animuj X</string>
     <string name="stringAnimateY">Animuj Y</string>
     <string name="stringAnimateXY">Animuj XY</string>
-    <string name="stringToggleAdjustXLegend">Przełącz Dostososwywanie legendy X</string>
+    <string name="stringToggleAdjustXLegend">Przełącz Dostosowywanie legendy X</string>
     <string name="stringSave">Zapisz Na Kartę SD</string>
     <string name="stringTogglePinch">Przełącz Powiększanie "Uszczypnięciami"</string>
     <string name="stringToggleAutoScaleMinMax">Przełącz Automatyczną Skalę Min/Max</string>
@@ -119,10 +119,10 @@
     <string name="string_searchStopped">Wyszukiwanie Zakończono</string>
     <string name="string_added">Dodano: </string>
     <string name="alert_title">Uwaga!</string>
-    <string name="string_deleteAll">Zostaną zastąpione wsystkie istniejące wpisy w bazie danych. Czy chcesz kontynuować?</string>
+    <string name="string_deleteAll">Zostaną zastąpione wszystkie istniejące wpisy w bazie danych. Czy chcesz kontynuować?</string>
     <string name="string_lowDatabaseCount">Baza danych jest pusta. Czy chcesz dokonać teraz synchronizacji?</string>
     <string name="string_noDatabaseCount">Baza danych jest pusta. Należy dokonać synchronizacji z kolektorem lub sensorem.</string>
-    <string name="string_noWifi">Brak połącznenia z siecią bezprzewodową. Proszę sprawdzić połaczone i spróbować ponownie.</string>
+    <string name="string_noWifi">Brak połączenia z siecią bezprzewodową. Proszę sprawdzić połaczone i spróbować ponownie.</string>
     <string name="string_downloadError">Urządzenie nie odpowiedziało w żądanym czasie. Proszę sprawdzić połączenie i spróbować ponownie później.</string>
     <string name="alert_info">Informacja</string>
     <string name="alert_downloadOK">Dodawanie danych do bazy zakończone powodzeniem</string>
