@@ -4,6 +4,7 @@ package lab.android.bartosz.ssms;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.style.TtsSpan;
 import android.util.Log;
@@ -354,12 +356,35 @@ public class ChartActivity extends AppCompatActivity implements OnChartValueSele
                     // Do something on success
                     if (mChart.saveToPath("ssms-" + str, "/ssms/")) {
                         //mChart.saveToPath("test","/sdcard/")
+
                         if (toast)
                             Toast.makeText(getApplicationContext(), getString(R.string.save_success),
                                     Toast.LENGTH_SHORT).show();
-                    } else if (toast)
-                        Toast.makeText(getApplicationContext(), getString(R.string.save_failed), Toast.LENGTH_SHORT)
+                        new AlertDialog.Builder(this)
+                                .setTitle(getString(R.string.alert_info))
+                                .setMessage(getString(R.string.save_success))
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        //
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_info)
                                 .show();
+                    } else {
+                        if (toast)
+                            Toast.makeText(getApplicationContext(), getString(R.string.save_failed), Toast.LENGTH_SHORT)
+                                    .show();
+                        new AlertDialog.Builder(this)
+                                .setTitle(getString(R.string.alert_title))
+                                .setMessage(getString(R.string.save_failed))
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        //
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .show();
+                    }
                 } else {
                     // Do something else on failure
                 }
