@@ -20,12 +20,17 @@ public class SensorWidget extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
 
+        SensorData last = new SensorData();
         SensorDataDbHelper sensorDataDbHelper = new SensorDataDbHelper(context);
-        SensorData last = sensorDataDbHelper.getLast();
+
+        if (sensorDataDbHelper.countRows() > 0) {
+            last = sensorDataDbHelper.getLast();
+        }
+
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.sensor_widget);
-        if(last.getId()!=-1) {
+        if (last.getId() != -1) {
             views.setTextViewText(R.id.widgetDeviceIDTextView, String.valueOf(last.getSensorId()));
             views.setTextViewText(R.id.widgetHumidityTextView, String.valueOf(last.getHumidity()));
             views.setTextViewText(R.id.widgetTemperatureTextView, String.valueOf(last.getTemperature()));
@@ -33,8 +38,8 @@ public class SensorWidget extends AppWidgetProvider {
         }
 
         Intent intent = new Intent(context, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context,0,intent,0);
-        views.setOnClickPendingIntent(R.id.widgetLayout,pendingIntent);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+        views.setOnClickPendingIntent(R.id.widgetLayout, pendingIntent);
 
 
         // Instruct the widget manager to update the widget
@@ -58,5 +63,6 @@ public class SensorWidget extends AppWidgetProvider {
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
     }
+
 }
 

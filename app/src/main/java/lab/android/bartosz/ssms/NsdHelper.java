@@ -8,7 +8,6 @@ import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -28,7 +27,7 @@ public class NsdHelper {
 
     private final String TAG = "NSD";
     private final String SERVICE_NAME = "sjd";
-    private final String SERVICE_TYPE = "_json._udp.";
+    private final String SENSOR_SERVICE_TYPE = "_json._udp.";
     private final String COLLECTOR_SERVICE_TYPE = "_ssmsd._udp.";
 
     Map<InetAddress, Integer> mDSNList;
@@ -127,12 +126,12 @@ public class NsdHelper {
             public void onServiceFound(NsdServiceInfo service) {
                 // A service was found!  Do something with it.
                 Log.e(TAG, "Service discovery success " + service);
-                if ((service.getServiceType().equals(SERVICE_TYPE))) {
+                if ((service.getServiceType().equals(SENSOR_SERVICE_TYPE))) {
                     nsdManager.resolveService(service, sensorResolveListener);
-                    Log.e(TAG, "Found machine: " + SERVICE_NAME);
+                    Log.e(TAG, "Found machine: " + service.getServiceName());
 
                 } else {
-                    Log.e(TAG, "Found machine: " + SERVICE_NAME);
+                    Log.e(TAG, "Found machine: " + service.getServiceName());
                     Log.e(TAG, "Unknown Service Type: " + service.getServiceType());
                 }
             }
@@ -178,11 +177,11 @@ public class NsdHelper {
                 Log.e(TAG, "Service discovery success " + service);
                 if (service.getServiceType().equals(COLLECTOR_SERVICE_TYPE)) {
 
-                    Log.e(TAG, "Found machine: " + SERVICE_NAME);
+                    Log.e(TAG, "Found machine: " + service.getServiceName());
                     nsdManager.resolveService(service, collectorResolveListener);
 
                 } else {
-                    Log.e(TAG, "Found machine: " + SERVICE_NAME);
+                    Log.e(TAG, "Found machine: " + service.getServiceName());
                     Log.e(TAG, "Unknown Service Type: " + service.getServiceType());
                 }
             }
@@ -217,7 +216,7 @@ public class NsdHelper {
 
 
     public void discoverServices() {
-        nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, sensorDiscoveryListener);
+        nsdManager.discoverServices(SENSOR_SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, sensorDiscoveryListener);
         nsdManager.discoverServices(COLLECTOR_SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, collectorDiscoveryListener);
     }
 
@@ -241,8 +240,7 @@ public class NsdHelper {
         return devices;
     }
 
-    public void clearLists()
-    {
+    public void clearLists() {
         devices.clear();
         sensorDevices.clear();
         collectorDevices.clear();
