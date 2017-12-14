@@ -71,12 +71,13 @@ public class SensorService extends Service {
         mBuilder.setContentTitle("SSMS");
         mBuilder.setContentText(getString(R.string.notif_new_data));
         mBuilder.setSmallIcon(R.drawable.ic_info_black_24dp);
+        mBuilder.setAutoCancel(true);
         Intent mIntent = new Intent(this, SensorReadingsActivity.class);
         mIntent.putExtra("sensorID", 0);
         PendingIntent mPendingIntent = PendingIntent.getActivity(context, 0, mIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT);
         mBuilder.setContentIntent(mPendingIntent);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        toast = prefs.getBoolean("show_toast", true);
+        toast = prefs.getBoolean("show_toast", false);
         super.onCreate();
     }
 
@@ -198,7 +199,7 @@ public class SensorService extends Service {
 
             while (hasNext) {
                 Log.e("DOWNLOAD", "STARTING CHUNK DOWNLOAD");
-                byte[] bMsg = new byte[1024];
+                byte[] bMsg = new byte[1200];
                 DatagramPacket recieveDatagramPacket = new DatagramPacket(bMsg, bMsg.length);
                 datagramSocket.receive(recieveDatagramPacket);
                 Log.e("DOWNLOAD", "PACKET DOWNLOADED, START PARSE");
@@ -215,14 +216,20 @@ public class SensorService extends Service {
                 }
                 for (int i = 0; i < retJson.getInt("content_length"); i++) {
                     JSONObject object = array.getJSONObject(i);
-                    SensorData sensorData = new SensorData();
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    Date date = simpleDateFormat.parse(object.getString("date"));
-                    sensorData.setDate(date);
-                    sensorData.setSensorId(object.getInt("sensorID"));
-                    sensorData.setTemperature((float) object.getDouble("temperature"));
-                    sensorData.setHumidity((float) object.getDouble("humidity"));
-                    retData.add(sensorData);
+                    try {
+                        SensorData sensorData = new SensorData();
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        Date date = simpleDateFormat.parse(object.getString("date"));
+                        sensorData.setDate(date);
+                        sensorData.setSensorId(object.getInt("sensorID"));
+                        sensorData.setTemperature((float) object.getDouble("temperature"));
+                        sensorData.setHumidity((float) object.getDouble("humidity"));
+                        retData.add(sensorData);
+                    } catch (JSONException ex) {
+                        Log.e("ERROR:", ex.getMessage());
+                    } catch (ParseException ex) {
+                        Log.e("ERROR:", ex.getMessage());
+                    }
                 }
 
                 hasNext = retJson.getBoolean("has_next");
@@ -233,8 +240,6 @@ public class SensorService extends Service {
 
 
         } catch (JSONException ex) {
-            Log.e("ERROR:", ex.getMessage());
-        } catch (ParseException ex) {
             Log.e("ERROR:", ex.getMessage());
         } finally {
             if (datagramSocket != null) {
@@ -263,7 +268,7 @@ public class SensorService extends Service {
 
             while (hasNext) {
                 Log.e("DOWNLOAD", "STARTING CHUNK DOWNLOAD");
-                byte[] bMsg = new byte[1024];
+                byte[] bMsg = new byte[1200];
                 DatagramPacket recieveDatagramPacket = new DatagramPacket(bMsg, bMsg.length);
                 datagramSocket.receive(recieveDatagramPacket);
                 Log.e("DOWNLOAD", "PACKET DOWNLOADED, START PARSE");
@@ -280,14 +285,20 @@ public class SensorService extends Service {
                 }
                 for (int i = 0; i < retJson.getInt("content_length"); i++) {
                     JSONObject object = array.getJSONObject(i);
-                    SensorData sensorData = new SensorData();
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    Date date = simpleDateFormat.parse(object.getString("date"));
-                    sensorData.setDate(date);
-                    sensorData.setSensorId(object.getInt("sensorID"));
-                    sensorData.setTemperature((float) object.getDouble("temperature"));
-                    sensorData.setHumidity((float) object.getDouble("humidity"));
-                    retData.add(sensorData);
+                    try {
+                        SensorData sensorData = new SensorData();
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        Date date = simpleDateFormat.parse(object.getString("date"));
+                        sensorData.setDate(date);
+                        sensorData.setSensorId(object.getInt("sensorID"));
+                        sensorData.setTemperature((float) object.getDouble("temperature"));
+                        sensorData.setHumidity((float) object.getDouble("humidity"));
+                        retData.add(sensorData);
+                    } catch (JSONException ex) {
+                        Log.e("ERROR:", ex.getMessage());
+                    } catch (ParseException ex) {
+                        Log.e("ERROR:", ex.getMessage());
+                    }
                 }
 
                 hasNext = retJson.getBoolean("has_next");
@@ -298,8 +309,6 @@ public class SensorService extends Service {
 
 
         } catch (JSONException ex) {
-            Log.e("ERROR:", ex.getMessage());
-        } catch (ParseException ex) {
             Log.e("ERROR:", ex.getMessage());
         } finally {
             if (datagramSocket != null) {
@@ -328,7 +337,7 @@ public class SensorService extends Service {
 
             while (hasNext) {
                 Log.e("DOWNLOAD", "STARTING CHUNK DOWNLOAD");
-                byte[] bMsg = new byte[1024];
+                byte[] bMsg = new byte[1200];
                 DatagramPacket recieveDatagramPacket = new DatagramPacket(bMsg, bMsg.length);
                 datagramSocket.receive(recieveDatagramPacket);
                 Log.e("DOWNLOAD", "PACKET DOWNLOADED, START PARSE");
@@ -345,14 +354,20 @@ public class SensorService extends Service {
                 }
                 for (int i = 0; i < retJson.getInt("content_length"); i++) {
                     JSONObject object = array.getJSONObject(i);
-                    SensorData sensorData = new SensorData();
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    Date date = simpleDateFormat.parse(object.getString("date"));
-                    sensorData.setDate(date);
-                    sensorData.setSensorId(object.getInt("sensorID"));
-                    sensorData.setTemperature((float) object.getDouble("temperature"));
-                    sensorData.setHumidity((float) object.getDouble("humidity"));
-                    retData.add(sensorData);
+                    try {
+                        SensorData sensorData = new SensorData();
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        Date date = simpleDateFormat.parse(object.getString("date"));
+                        sensorData.setDate(date);
+                        sensorData.setSensorId(object.getInt("sensorID"));
+                        sensorData.setTemperature((float) object.getDouble("temperature"));
+                        sensorData.setHumidity((float) object.getDouble("humidity"));
+                        retData.add(sensorData);
+                    } catch (JSONException ex) {
+                        Log.e("ERROR:", ex.getMessage());
+                    } catch (ParseException ex) {
+                        Log.e("ERROR:", ex.getMessage());
+                    }
                 }
 
                 hasNext = retJson.getBoolean("has_next");
@@ -363,8 +378,6 @@ public class SensorService extends Service {
 
 
         } catch (JSONException ex) {
-            Log.e("ERROR:", ex.getMessage());
-        } catch (ParseException ex) {
             Log.e("ERROR:", ex.getMessage());
         } finally {
             if (datagramSocket != null) {
@@ -515,5 +528,13 @@ public class SensorService extends Service {
             WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
             return wifiInfo != null && wifiInfo.getNetworkId() != -1;
         } else return false; // Wi-Fi adapter is OFF
+    }
+
+    public void stopAllTasks() {
+        for(InetAddress addr : taskMap.keySet())
+        {
+            stopTimerTask(addr);
+        }
+        this.stopSelf();
     }
 }

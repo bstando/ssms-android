@@ -112,7 +112,7 @@ public class CollectorActivity extends AppCompatActivity {
             }
         });
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        toast = prefs.getBoolean("show_toast", true);
+        toast = prefs.getBoolean("show_toast", false);
     }
 
     public void showDatabase() {
@@ -161,6 +161,7 @@ public class CollectorActivity extends AppCompatActivity {
                 }
 
                 //Toast.makeText(getApplicationContext(),date,Toast.LENGTH_LONG).show();
+                Log.d("DATE_TO_START",date);
                 dialog = ProgressDialog.show(CollectorActivity.this, getString(R.string.string_loading), getString(R.string.string_starting));
                 ArrayList<SensorData> sensorDatas = (ArrayList<SensorData>) sensorService.getDataSinceFromDatabase(date);
                 Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
@@ -323,7 +324,7 @@ public class CollectorActivity extends AppCompatActivity {
                 if (setHours < 10) {
                     date += " 0" + setHours;
                 } else {
-                    date += " " + setHours + ":" + setMinutes + ":00";
+                    date += " " + setHours;
                 }
                 if (setMinutes < 10) {
                     date += ":0" + setMinutes + ":00";

@@ -60,7 +60,7 @@ public class DeviceActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        toast = prefs.getBoolean("show_toast", true);
+        toast = prefs.getBoolean("show_toast", false);
 
         Bundle extrasBundle = getIntent().getExtras();
         if (extrasBundle != null) {
@@ -265,15 +265,12 @@ public class DeviceActivity extends AppCompatActivity {
                     date += ":" + setMinutes + ":00";
                 }
 
-                //Toast.makeText(getApplicationContext(),date,Toast.LENGTH_LONG).show();
                 dialog = ProgressDialog.show(DeviceActivity.this, getString(R.string.string_loading), getString(R.string.string_starting));
                 ArrayList<SensorData> sensorDatas = (ArrayList<SensorData>) sensorService.getDataSinceFromDatabase(date);
                 Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
                 intent.putExtra("list", sensorDatas);
                 intent.putExtra("temperature", temperature);
                 dialog.dismiss();
-                //Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
-                //intent.putExtra("date",date);
                 startActivity(intent);
 
             }

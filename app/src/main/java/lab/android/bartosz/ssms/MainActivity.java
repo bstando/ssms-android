@@ -16,6 +16,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        toast = prefs.getBoolean("show_toast", true);
+        toast = prefs.getBoolean("show_toast", false);
 
         initReceiver();
     }
@@ -113,11 +114,12 @@ public class MainActivity extends AppCompatActivity {
             unbindService(connection);
             bounded = false;
         }
-
         unregisterReceiver(nsdReceiver);
         Intent intent = new Intent(this, SensorService.class);
         stopService(intent);
+        Log.e("MAIN ON DESTROY", "onDestroy called");
         super.onDestroy();
+        this.finish();
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -148,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         // Take appropriate action for each action item click
         switch (item.getItemId()) {
             case R.id.action_exit:
+                sensorService.stopAllTasks();
                 this.finish();
                 return true;
             case R.id.action_settings:
